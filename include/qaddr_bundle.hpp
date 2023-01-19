@@ -15,7 +15,7 @@ public:
     template<qblocks::Address::types addressType> QString get_address(void)const;
     std::pair<QByteArray,QByteArray> get_key_pair(void)const;
 
-    void consume_outputs(std::vector<Node_output> outs_,const quint64 amount_need_it,
+    void consume_outputs(std::vector<Node_output> &outs_, const quint64 amount_need_it,
                          qblocks::c_array& Inputs_Commitments, quint64& amount,
                          std::vector<std::shared_ptr<qblocks::Output>>& ret_outputs,
                          std::vector<std::shared_ptr<qblocks::Input>>& inputs);
@@ -23,7 +23,7 @@ public:
     qblocks::signature sign(const QByteArray & message)const;
     std::shared_ptr<qblocks::Signature> signature(const QByteArray & message)const;
     std::shared_ptr<qblocks::Unlock> signature_unlock(const QByteArray & message)const;
-    void create_unlocks(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const;
+    template<class reference_type>void create_unlocks(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const;
 
 private:
     quint16 reference_count_;

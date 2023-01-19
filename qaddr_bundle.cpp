@@ -51,7 +51,7 @@ std::shared_ptr<qblocks::Unlock> AddressBundle::signature_unlock(const QByteArra
     return std::shared_ptr<qblocks::Unlock>(new qblocks::Signature_Unlock(signature(message)));
 }
 
-void AddressBundle::create_unlocks(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const
+template<class reference_type> void AddressBundle::create_unlocks(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const
 {
     if(reference_count_)
     {
@@ -59,11 +59,14 @@ void AddressBundle::create_unlocks(const QByteArray & message,std::vector<std::s
         unlocks.push_back(signature_unlock(message));
         for(auto i=0;i<reference_count_-1;i++)
         {
-            unlocks.push_back(std::shared_ptr<qblocks::Unlock>(new qblocks::Reference_Unlock(reference_index)));
+            unlocks.push_back(std::shared_ptr<qblocks::Unlock>(new reference_type(reference_index)));
         }
     }
 }
-void AddressBundle::consume_outputs(std::vector<Node_output> outs_,const quint64 amount_need_it,
+template void AddressBundle::create_unlocks<qblocks::Reference_Unlock>(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const;
+template void AddressBundle::create_unlocks<qblocks::Alias_Unlock>(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const;
+template void AddressBundle::create_unlocks<qblocks::NFT_Unlock>(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const;
+void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint64 amount_need_it,
                                     qblocks::c_array& Inputs_Commitments, quint64& amount,
                                     std::vector<std::shared_ptr<qblocks::Output>>& ret_outputs,
                                     std::vector<std::shared_ptr<qblocks::Input>>& inputs)
@@ -74,12 +77,11 @@ void AddressBundle::consume_outputs(std::vector<Node_output> outs_,const quint64
     while(((amount_need_it)?amount<amount_need_it:1)&&!outs_.empty())
     {
         const auto v=outs_.back();
-        if(!v.metadata().is_spent_&&v.output()->type_m==qblocks::Output::Basic_typ)
+        if(!v.metadata().is_spent_)
         {
-            const auto basic_output_=std::dynamic_pointer_cast<qblocks::Basic_Output>(v.output());
+            const auto output_=v.output();
 
-
-            const auto  stor_unlock=basic_output_->get_unlock_(qblocks::Unlock_Condition::Storage_Deposit_Return_typ);
+            const auto  stor_unlock=output_->get_unlock_(qblocks::Unlock_Condition::Storage_Deposit_Return_typ);
             quint64 ret_amount=0;
             if(stor_unlock)
             {
@@ -90,7 +92,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> outs_,const quint64
                 const auto retOut= std::shared_ptr<qblocks::Output>(new qblocks::Basic_Output(ret_amount,{retUnlcon},{},{}));
                 ret_outputs.push_back(retOut);
             }
-            const auto expir=basic_output_->get_unlock_(qblocks::Unlock_Condition::Expiration_typ);
+            const auto expir=output_->get_unlock_(qblocks::Unlock_Condition::Expiration_typ);
             if(expir)
             {
                 const auto expiration_cond=std::dynamic_pointer_cast<qblocks::Expiration_Unlock_Condition>(expir);
@@ -123,7 +125,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> outs_,const quint64
                 }
 
             }
-            const auto time_lock=basic_output_->get_unlock_(qblocks::Unlock_Condition::Timelock_typ);
+            const auto time_lock=output_->get_unlock_(qblocks::Unlock_Condition::Timelock_typ);
             if(time_lock)
             {
                 const auto time_lock_cond=std::dynamic_pointer_cast<qblocks::Timelock_Unlock_Condition>(time_lock);
@@ -142,7 +144,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> outs_,const quint64
             prevOutputSer.from_object<qblocks::Output>(*(v.output()));
             auto Inputs_Commitment1=QCryptographicHash::hash(prevOutputSer, QCryptographicHash::Blake2b_256);
             Inputs_Commitments.append(Inputs_Commitment1);
-            amount+=basic_output_->amount_-ret_amount;
+            amount+=output_->amount_-ret_amount;
             reference_count_++;
         }
         outs_.pop_back();
