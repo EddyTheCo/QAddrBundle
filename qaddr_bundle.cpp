@@ -17,7 +17,7 @@ QByteArray AddressBundle::get_hash(void)const
     return QCryptographicHash::hash(key_pair.first,QCryptographicHash::Blake2b_256);
 }
 
-template<quint8 addressType> QString AddressBundle::get_address(void)const
+template<qblocks::Address::types addressType> QString AddressBundle::get_address(void)const
 {
     QByteArray hash_;
     auto buffer=QDataStream(&hash_,QIODevice::WriteOnly | QIODevice::Append);
@@ -28,9 +28,9 @@ template<quint8 addressType> QString AddressBundle::get_address(void)const
     return addr;
 }
 
-template QString AddressBundle::get_address<0>(void)const;
-template QString AddressBundle::get_address<8>(void)const;
-template QString AddressBundle::get_address<16>(void)const;
+template QString AddressBundle::get_address<qblocks::Address::Ed25519_typ>(void)const;
+template QString AddressBundle::get_address<qblocks::Address::Alias_typ>(void)const;
+template QString AddressBundle::get_address<qblocks::Address::NFT_typ>(void)const;
 
 std::pair<QByteArray,QByteArray> AddressBundle::get_key_pair(void)const
 {
@@ -76,13 +76,14 @@ void AddressBundle::consume_outputs(std::vector<Node_output> outs_,const quint64
         const auto v=outs_.back();
         if(!v.metadata().is_spent_&&v.output()->type_m==qblocks::Output::Basic_typ)
         {
-            const auto basic_output_=v.output()->to<qblocks::Basic_Output>();
+            const auto basic_output_=std::dynamic_pointer_cast<qblocks::Basic_Output>(v.output());
+
 
             const auto  stor_unlock=basic_output_->get_unlock_(qblocks::Unlock_Condition::Storage_Deposit_Return_typ);
             quint64 ret_amount=0;
             if(stor_unlock)
             {
-                const auto sdruc=stor_unlock->to<qblocks::Storage_Deposit_Return_Unlock_Condition>();
+                const auto sdruc=std::dynamic_pointer_cast<qblocks::Storage_Deposit_Return_Unlock_Condition>(stor_unlock);
                 ret_amount=sdruc->return_amount();
                 const auto ret_address=sdruc->return_address();
                 const auto retUnlcon=std::shared_ptr<qblocks::Unlock_Condition>(new qblocks::Address_Unlock_Condition(ret_address));
@@ -92,12 +93,12 @@ void AddressBundle::consume_outputs(std::vector<Node_output> outs_,const quint64
             const auto expir=basic_output_->get_unlock_(qblocks::Unlock_Condition::Expiration_typ);
             if(expir)
             {
-                const auto expiration_cond=expir->to<qblocks::Expiration_Unlock_Condition>();
+                const auto expiration_cond=std::dynamic_pointer_cast<qblocks::Expiration_Unlock_Condition>(expir);
                 const auto unix_time=expiration_cond->unix_time();
                 const auto ret_address=expiration_cond->return_address();
                 if(ret_address->type_m==0)
                 {
-                    const auto ret_addrs=ret_address->to<qblocks::Ed25519_Address>();
+                    const auto ret_addrs=std::dynamic_pointer_cast<qblocks::Ed25519_Address>(ret_address);
                     if(ret_addrs->pubkeyhash()==get_hash())
                     {
                         if(stor_unlock)
@@ -125,7 +126,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> outs_,const quint64
             const auto time_lock=basic_output_->get_unlock_(qblocks::Unlock_Condition::Timelock_typ);
             if(time_lock)
             {
-                const auto time_lock_cond=time_lock->to<qblocks::Timelock_Unlock_Condition>();
+                const auto time_lock_cond=std::dynamic_pointer_cast<qblocks::Timelock_Unlock_Condition>(time_lock);
                 const auto unix_time=time_lock_cond->unix_time();
                 if(cday<unix_time)
                 {
@@ -141,7 +142,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> outs_,const quint64
             prevOutputSer.from_object<qblocks::Output>(*(v.output()));
             auto Inputs_Commitment1=QCryptographicHash::hash(prevOutputSer, QCryptographicHash::Blake2b_256);
             Inputs_Commitments.append(Inputs_Commitment1);
-            amount+=basic_output_->amount()-ret_amount;
+            amount+=basic_output_->amount_-ret_amount;
             reference_count_++;
         }
         outs_.pop_back();
