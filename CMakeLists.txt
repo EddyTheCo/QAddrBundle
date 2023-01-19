@@ -16,8 +16,9 @@ FetchContent_Declare(
         GIT_REPOSITORY git@github.com:EddyTheCo/Qclient-IOTA.git
         GIT_TAG version-0.2
         )
+if(NOT TARGET qclient)
 FetchContent_MakeAvailable(qclient)
-
+endif(NOT TARGET qclient)
 FetchContent_Declare(
 	qbech32
 	GIT_REPOSITORY git@github.com:EddyTheCo/Qbech32.git
