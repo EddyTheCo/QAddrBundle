@@ -1,4 +1,4 @@
-
+#include<QJsonDocument>
 #include"qaddr_bundle.hpp"
 #include <QCryptographicHash>
 #include"crypto/qed25519.hpp"
@@ -141,9 +141,9 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
             inputs.push_back(std::shared_ptr<qblocks::Input>(new qblocks::UTXO_Input(v.metadata().transaction_id_,
                                                                                      v.metadata().output_index_)));
             qblocks::c_array prevOutputSer;
-            prevOutputSer.from_object<qblocks::Output>(*(v.output()));
+            prevOutputSer.from_object<qblocks::Output>(*v.output());
             auto Inputs_Commitment1=QCryptographicHash::hash(prevOutputSer, QCryptographicHash::Blake2b_256);
-            Inputs_Commitments.append(Inputs_Commitment1);
+            Inputs_Commitments+=Inputs_Commitment1;
             amount+=output_->amount_-ret_amount;
             reference_count_++;
         }
