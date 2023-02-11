@@ -101,7 +101,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
                 if(ret_address->type_m==0)
                 {
                     const auto ret_addrs=std::dynamic_pointer_cast<qblocks::Ed25519_Address>(ret_address);
-                    if(ret_addrs->pubkeyhash()==get_hash())
+                    if(ret_addrs->addr()==get_hash())
                     {
                         if(stor_unlock)
                         {
