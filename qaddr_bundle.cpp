@@ -16,21 +16,29 @@ QByteArray AddressBundle::get_hash(void)const
 {
     return QCryptographicHash::hash(key_pair.first,QCryptographicHash::Blake2b_256);
 }
-
-template<qblocks::Address::types addressType> QString AddressBundle::get_address(void)const
+template<qblocks::Address::types addressType> qblocks::c_array AddressBundle::get_address(void)const
 {
-    QByteArray hash_;
+    qblocks::c_array hash_;
     auto buffer=QDataStream(&hash_,QIODevice::WriteOnly | QIODevice::Append);
     buffer.setByteOrder(QDataStream::LittleEndian);
     buffer<<addressType;
-    hash_.append(get_hash());
-    const auto addr=qencoding::qbech32::Iota::encode(hrp,hash_);
+    hash_+=(get_hash());
+    return hash_;
+}
+template<qblocks::Address::types addressType> QString AddressBundle::get_address_bech32(void)const
+{
+    const auto addr=qencoding::qbech32::Iota::encode(hrp,get_address<addressType>());
     return addr;
 }
 
-template QString AddressBundle::get_address<qblocks::Address::Ed25519_typ>(void)const;
-template QString AddressBundle::get_address<qblocks::Address::Alias_typ>(void)const;
-template QString AddressBundle::get_address<qblocks::Address::NFT_typ>(void)const;
+template qblocks::c_array AddressBundle::get_address<qblocks::Address::Ed25519_typ>(void)const;
+template qblocks::c_array AddressBundle::get_address<qblocks::Address::Alias_typ>(void)const;
+template qblocks::c_array AddressBundle::get_address<qblocks::Address::NFT_typ>(void)const;
+
+
+template QString AddressBundle::get_address_bech32<qblocks::Address::Ed25519_typ>(void)const;
+template QString AddressBundle::get_address_bech32<qblocks::Address::Alias_typ>(void)const;
+template QString AddressBundle::get_address_bech32<qblocks::Address::NFT_typ>(void)const;
 
 std::pair<QByteArray,QByteArray> AddressBundle::get_key_pair(void)const
 {
@@ -98,7 +106,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
                 const auto expiration_cond=std::dynamic_pointer_cast<qblocks::Expiration_Unlock_Condition>(expir);
                 const auto unix_time=expiration_cond->unix_time();
                 const auto ret_address=expiration_cond->return_address();
-                if(ret_address->type_m==0)
+                if(ret_address->type_m==qblocks::Address::Ed25519_typ)
                 {
                     const auto ret_addrs=std::dynamic_pointer_cast<qblocks::Ed25519_Address>(ret_address);
                     if(ret_addrs->addr()==get_hash())

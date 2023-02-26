@@ -12,7 +12,8 @@ public:
     AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m,QString hrp_m="rms");
 
     QByteArray get_hash(void)const;
-    template<qblocks::Address::types addressType> QString get_address(void)const;
+    template<qblocks::Address::types addressType> QString get_address_bech32(void)const;
+    template<qblocks::Address::types addressType> qblocks::c_array get_address(void)const;
     std::pair<QByteArray,QByteArray> get_key_pair(void)const;
 
     void consume_outputs(std::vector<Node_output> &outs_, const quint64 amount_need_it,
