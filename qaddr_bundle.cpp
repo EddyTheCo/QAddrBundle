@@ -7,8 +7,8 @@
 using namespace qcrypto;
 namespace qiota{
 
-AddressBundle::AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m,QString hrp_m):key_pair(key_pair_m),
-    hrp(hrp_m), reference_count_(0)
+AddressBundle::AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m):key_pair(key_pair_m),
+     reference_count_(0)
 { };
 
 
@@ -25,7 +25,7 @@ template<qblocks::Address::types addressType> qblocks::c_array AddressBundle::ge
     hash_+=(get_hash());
     return hash_;
 }
-template<qblocks::Address::types addressType> QString AddressBundle::get_address_bech32(void)const
+template<qblocks::Address::types addressType> QString AddressBundle::get_address_bech32(QString hrp)const
 {
     const auto addr=qencoding::qbech32::Iota::encode(hrp,get_address<addressType>());
     return addr;
@@ -36,9 +36,9 @@ template qblocks::c_array AddressBundle::get_address<qblocks::Address::Alias_typ
 template qblocks::c_array AddressBundle::get_address<qblocks::Address::NFT_typ>(void)const;
 
 
-template QString AddressBundle::get_address_bech32<qblocks::Address::Ed25519_typ>(void)const;
-template QString AddressBundle::get_address_bech32<qblocks::Address::Alias_typ>(void)const;
-template QString AddressBundle::get_address_bech32<qblocks::Address::NFT_typ>(void)const;
+template QString AddressBundle::get_address_bech32<qblocks::Address::Ed25519_typ>(QString hrp)const;
+template QString AddressBundle::get_address_bech32<qblocks::Address::Alias_typ>(QString hrp)const;
+template QString AddressBundle::get_address_bech32<qblocks::Address::NFT_typ>(QString hrp)const;
 
 std::pair<QByteArray,QByteArray> AddressBundle::get_key_pair(void)const
 {

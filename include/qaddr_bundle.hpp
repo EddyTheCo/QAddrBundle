@@ -9,10 +9,10 @@ namespace qiota{
 class AddressBundle
 {
 public:
-    AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m,QString hrp_m="rms");
+    AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m);
 
     QByteArray get_hash(void)const;
-    template<qblocks::Address::types addressType> QString get_address_bech32(void)const;
+    template<qblocks::Address::types addressType> QString get_address_bech32(QString hrp)const;
     template<qblocks::Address::types addressType> qblocks::c_array get_address(void)const;
     std::pair<QByteArray,QByteArray> get_key_pair(void)const;
 
@@ -29,7 +29,6 @@ public:
 private:
     quint16 reference_count_;
     const std::pair<QByteArray,QByteArray> key_pair;
-    QString hrp;
 };
 using address_bundle = AddressBundle;
 }
