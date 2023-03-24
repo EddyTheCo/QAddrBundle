@@ -4,6 +4,7 @@
 #include"crypto/qed25519.hpp"
 #include<QDataStream>
 #include<QDateTime>
+#include<set>
 using namespace qcrypto;
 namespace qiota{
 
@@ -81,11 +82,12 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
 {
 
     const auto cday=QDateTime::currentDateTime().toSecsSinceEpoch();
-
+    std::set<QString> otids;
     while(((amount_need_it)?amount<amount_need_it:1)&&!outs_.empty())
     {
         const auto v=outs_.back();
-        if(!v.metadata().is_spent_)
+
+        if(!v.metadata().is_spent_&&otids.insert(v.metadata().outputid_).second)
         {
             const auto output_=v.output();
 
