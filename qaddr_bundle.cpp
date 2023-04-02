@@ -5,45 +5,27 @@
 #include<QDataStream>
 #include<QDateTime>
 #include<set>
+#include<map>
 using namespace qcrypto;
 namespace qiota{
 
+using namespace qblocks;
+
 AddressBundle::AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m):key_pair(key_pair_m),
-     reference_count_(0)
+    addr(std::shared_ptr<Address>(new Ed25519_Address(QCryptographicHash::hash(key_pair.first,QCryptographicHash::Blake2b_256))))
+{ };
+AddressBundle::AddressBundle(std::shared_ptr<Address> addr_m):addr(addr_m)
 { };
 
 
-QByteArray AddressBundle::get_hash(void)const
+std::shared_ptr<qblocks::Address> AddressBundle::get_address(void)const
 {
-    return QCryptographicHash::hash(key_pair.first,QCryptographicHash::Blake2b_256);
-}
-template<qblocks::Address::types addressType> qblocks::c_array AddressBundle::get_address(void)const
-{
-    qblocks::c_array hash_;
-    auto buffer=QDataStream(&hash_,QIODevice::WriteOnly | QIODevice::Append);
-    buffer.setByteOrder(QDataStream::LittleEndian);
-    buffer<<addressType;
-    hash_+=(get_hash());
-    return hash_;
-}
-template<qblocks::Address::types addressType> QString AddressBundle::get_address_bech32(QString hrp)const
-{
-    const auto addr=qencoding::qbech32::Iota::encode(hrp,get_address<addressType>());
     return addr;
 }
-
-template qblocks::c_array AddressBundle::get_address<qblocks::Address::Ed25519_typ>(void)const;
-template qblocks::c_array AddressBundle::get_address<qblocks::Address::Alias_typ>(void)const;
-template qblocks::c_array AddressBundle::get_address<qblocks::Address::NFT_typ>(void)const;
-
-
-template QString AddressBundle::get_address_bech32<qblocks::Address::Ed25519_typ>(QString hrp)const;
-template QString AddressBundle::get_address_bech32<qblocks::Address::Alias_typ>(QString hrp)const;
-template QString AddressBundle::get_address_bech32<qblocks::Address::NFT_typ>(QString hrp)const;
-
-std::pair<QByteArray,QByteArray> AddressBundle::get_key_pair(void)const
+QString AddressBundle::get_address_bech32(QString hrp)const
 {
-    return key_pair;
+    const auto addr=qencoding::qbech32::Iota::encode(hrp,get_address()->addr());
+    return addr;
 }
 qblocks::signature AddressBundle::sign(const QByteArray & message)const
 {
@@ -52,7 +34,7 @@ qblocks::signature AddressBundle::sign(const QByteArray & message)const
 std::shared_ptr<qblocks::Signature> AddressBundle::signature(const QByteArray & message)const
 {
     return std::shared_ptr<qblocks::Signature>
-            (new qblocks::Ed25519_Signature(qblocks::public_key(key_pair.first),
+            (new qblocks::Ed25519_Signature(key_pair.first,
                                             sign(message)));
 }
 std::shared_ptr<qblocks::Unlock> AddressBundle::signature_unlock(const QByteArray & message)const
@@ -60,25 +42,33 @@ std::shared_ptr<qblocks::Unlock> AddressBundle::signature_unlock(const QByteArra
     return std::shared_ptr<qblocks::Unlock>(new qblocks::Signature_Unlock(signature(message)));
 }
 
-template<class reference_type> void AddressBundle::create_unlocks(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const
+void AddressBundle::create_unlocks(const QByteArray & message, const quint16 &ref)
 {
-    if(reference_count_)
+    for(const auto& v:inputs)
     {
-        const quint16 reference_index=unlocks.size();
-        unlocks.push_back(signature_unlock(message));
-        for(auto i=0;i<reference_count_-1;i++)
+        if(addr->type_m==qblocks::Address::Ed25519_typ)
         {
-            unlocks.push_back(std::shared_ptr<qblocks::Unlock>(new reference_type(reference_index)));
+            if(unlocks.size())
+            {
+                unlocks.push_back(std::shared_ptr<qblocks::Unlock>(new qblocks::Reference_Unlock(ref)));
+            }
+            else
+            {
+                unlocks.push_back(signature_unlock(message));
+            }
+        }
+        if(addr->type_m==qblocks::Address::Alias_typ)
+        {
+            unlocks.push_back(std::shared_ptr<qblocks::Unlock>(new qblocks::Alias_Unlock(ref)));
+        }
+        if(addr->type_m==qblocks::Address::NFT_typ)
+        {
+            unlocks.push_back(std::shared_ptr<qblocks::Unlock>(new qblocks::NFT_Unlock(ref)));
         }
     }
+
 }
-template void AddressBundle::create_unlocks<qblocks::Reference_Unlock>(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const;
-template void AddressBundle::create_unlocks<qblocks::Alias_Unlock>(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const;
-template void AddressBundle::create_unlocks<qblocks::NFT_Unlock>(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const;
-void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint64 amount_need_it,
-                                    qblocks::c_array& Inputs_Commitments, quint64& amount,
-                                    std::vector<std::shared_ptr<qblocks::Output>>& ret_outputs,
-                                    std::vector<std::shared_ptr<qblocks::Input>>& inputs)
+void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint64 amount_need_it)
 {
 
     const auto cday=QDateTime::currentDateTime().toSecsSinceEpoch();
@@ -108,10 +98,11 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
                 const auto expiration_cond=std::dynamic_pointer_cast<qblocks::Expiration_Unlock_Condition>(expir);
                 const auto unix_time=expiration_cond->unix_time();
                 const auto ret_address=expiration_cond->return_address();
+
                 if(ret_address->type_m==qblocks::Address::Ed25519_typ)
                 {
-                    const auto ret_addrs=std::dynamic_pointer_cast<qblocks::Ed25519_Address>(ret_address);
-                    if(ret_addrs->addr()==get_hash())
+
+                    if(ret_address->addr()==get_address()->addr())
                     {
                         if(stor_unlock)
                         {
@@ -145,17 +136,35 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
                     outs_.pop_back();
                     continue;
                 }
+            }
 
+            for(const auto& v:output_->native_tokens_)
+            {
+                native_tokens[v->token_id().toHexString()]+=v->amount();
             }
 
             inputs.push_back(std::shared_ptr<qblocks::Input>(new qblocks::UTXO_Input(v.metadata().transaction_id_,
                                                                                      v.metadata().output_index_)));
+
             qblocks::c_array prevOutputSer;
             prevOutputSer.from_object<qblocks::Output>(*v.output());
             auto Inputs_Commitment1=QCryptographicHash::hash(prevOutputSer, QCryptographicHash::Blake2b_256);
             Inputs_Commitments+=Inputs_Commitment1;
+            if(output_->type_m!=qblocks::Output::Basic_typ)
+            {
+                if(output_->type_m!=qblocks::Output::Foundry_typ)
+                {
+                    output_->set_id(v.metadata().outputid_.hash<QCryptographicHash::Blake2b_256>());
+                }
+                output_->consume();
+                if(output_->type_m==qblocks::Output::Foundry_typ)foundry_outputs.push_back(output_);
+                if(output_->type_m==qblocks::Output::Alias_typ)alias_outputs.push_back(output_);
+                if(output_->type_m==qblocks::Output::NFT_typ)nft_outputs.push_back(output_);
+            }
             amount+=output_->amount_-ret_amount;
-            reference_count_++;
+
+
+
         }
         outs_.pop_back();
     }

@@ -11,24 +11,34 @@ class AddressBundle
 public:
     AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m);
 
-    QByteArray get_hash(void)const;
-    template<qblocks::Address::types addressType> QString get_address_bech32(QString hrp)const;
-    template<qblocks::Address::types addressType> qblocks::c_array get_address(void)const;
-    std::pair<QByteArray,QByteArray> get_key_pair(void)const;
+    AddressBundle(std::shared_ptr<qblocks::Address> addr_m);
 
-    void consume_outputs(std::vector<Node_output> &outs_, const quint64 amount_need_it,
-                         qblocks::c_array& Inputs_Commitments, quint64& amount,
-                         std::vector<std::shared_ptr<qblocks::Output>>& ret_outputs,
-                         std::vector<std::shared_ptr<qblocks::Input>>& inputs);
-    quint16 reference_count(void)const{return reference_count_;}
+    QString get_address_bech32(QString hrp)const;
+    std::shared_ptr<qblocks::Address> get_address(void)const;
+
+
+    void consume_outputs(std::vector<Node_output> &outs_, const quint64 amount_need_it);
     qblocks::signature sign(const QByteArray & message)const;
     std::shared_ptr<qblocks::Signature> signature(const QByteArray & message)const;
     std::shared_ptr<qblocks::Unlock> signature_unlock(const QByteArray & message)const;
-    template<class reference_type>void create_unlocks(const QByteArray & message,std::vector<std::shared_ptr<qblocks::Unlock>>& unlocks)const;
+    void create_unlocks(const QByteArray & message);
+
+    qblocks::c_array Inputs_Commitments;
+    quint64 amount;
+    std::vector<std::shared_ptr<qblocks::Output>> ret_outputs;
+    std::vector<std::shared_ptr<qblocks::Output>> alias_outputs;
+    std::vector<std::shared_ptr<qblocks::Output>> foundry_outputs;
+    std::vector<std::shared_ptr<qblocks::Output>> nft_outputs;
+    std::vector<std::shared_ptr<qblocks::Input>> inputs;
+    std::vector<qiota::qblocks::Output::types> ref_typs;
+    std::vector<std::shared_ptr<qblocks::Unlock>> unlocks;
+    std::map<QString,qiota::qblocks::quint256> native_tokens;
 
 private:
-    quint16 reference_count_;
     const std::pair<QByteArray,QByteArray> key_pair;
+    std::shared_ptr<qblocks::Address> addr;
+
+
 };
 using address_bundle = AddressBundle;
 }
