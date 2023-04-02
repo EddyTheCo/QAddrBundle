@@ -21,8 +21,8 @@ public:
     qblocks::signature sign(const QByteArray & message)const;
     std::shared_ptr<qblocks::Signature> signature(const QByteArray & message)const;
     std::shared_ptr<qblocks::Unlock> signature_unlock(const QByteArray & message)const;
-    void create_unlocks(const QByteArray & message);
-
+    void create_unlocks(const QByteArray & message,const quint16& ref=0);
+    std::vector<std::shared_ptr<qblocks::Native_Token>> get_tokens(qblocks::c_array tokenid="" )const;
     qblocks::c_array Inputs_Commitments;
     quint64 amount;
     std::vector<std::shared_ptr<qblocks::Output>> ret_outputs;
@@ -32,7 +32,7 @@ public:
     std::vector<std::shared_ptr<qblocks::Input>> inputs;
     std::vector<qiota::qblocks::Output::types> ref_typs;
     std::vector<std::shared_ptr<qblocks::Unlock>> unlocks;
-    std::map<QString,qiota::qblocks::quint256> native_tokens;
+    std::map<qblocks::c_array,qiota::qblocks::quint256> native_tokens;
 
 private:
     const std::pair<QByteArray,QByteArray> key_pair;

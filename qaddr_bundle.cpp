@@ -12,9 +12,10 @@ namespace qiota{
 using namespace qblocks;
 
 AddressBundle::AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m):key_pair(key_pair_m),
-    addr(std::shared_ptr<Address>(new Ed25519_Address(QCryptographicHash::hash(key_pair.first,QCryptographicHash::Blake2b_256))))
+    addr(std::shared_ptr<Address>(new Ed25519_Address(QCryptographicHash::hash(key_pair.first,QCryptographicHash::Blake2b_256)))),
+  amount(0)
 { };
-AddressBundle::AddressBundle(std::shared_ptr<Address> addr_m):addr(addr_m)
+AddressBundle::AddressBundle(std::shared_ptr<Address> addr_m):addr(addr_m),amount(0)
 { };
 
 
@@ -41,7 +42,26 @@ std::shared_ptr<qblocks::Unlock> AddressBundle::signature_unlock(const QByteArra
 {
     return std::shared_ptr<qblocks::Unlock>(new qblocks::Signature_Unlock(signature(message)));
 }
-
+std::vector<std::shared_ptr<qblocks::Native_Token>> AddressBundle::get_tokens(qblocks::c_array tokenid )const
+{
+    std::vector<std::shared_ptr<qblocks::Native_Token>> var;
+    if(tokenid!="")
+    {
+        auto search = native_tokens.find(tokenid);
+        if(search != native_tokens.end())
+        {
+            var.push_back(std::shared_ptr<qblocks::Native_Token>(new qblocks::Native_Token(search->first,search->second)));
+        }
+    }
+    else
+    {
+        for (const auto& v : native_tokens)
+        {
+            var.push_back(std::shared_ptr<qblocks::Native_Token>(new qblocks::Native_Token(v.first,v.second)));
+        }
+    }
+    return var;
+}
 void AddressBundle::create_unlocks(const QByteArray & message, const quint16 &ref)
 {
     for(const auto& v:inputs)
@@ -140,7 +160,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
 
             for(const auto& v:output_->native_tokens_)
             {
-                native_tokens[v->token_id().toHexString()]+=v->amount();
+                native_tokens[v->token_id()]+=v->amount();
             }
 
             inputs.push_back(std::shared_ptr<qblocks::Input>(new qblocks::UTXO_Input(v.metadata().transaction_id_,
