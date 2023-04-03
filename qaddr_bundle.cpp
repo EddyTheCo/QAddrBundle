@@ -172,7 +172,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
             Inputs_Commitments+=Inputs_Commitment1;
             if(output_->type_m!=qblocks::Output::Basic_typ)
             {
-                if(output_->type_m!=qblocks::Output::Foundry_typ)
+                if(output_->type_m!=qblocks::Output::Foundry_typ&&output_->get_id()==c_array(32,0))
                 {
                     output_->set_id(v.metadata().outputid_.hash<QCryptographicHash::Blake2b_256>());
                 }
