@@ -66,7 +66,7 @@ void AddressBundle::create_unlocks(const QByteArray & message, const quint16 &re
 {
     for(const auto& v:inputs)
     {
-        if(addr->type_m==qblocks::Address::Ed25519_typ)
+        if(addr->type()==qblocks::Address::Ed25519_typ)
         {
             if(unlocks.size())
             {
@@ -77,11 +77,11 @@ void AddressBundle::create_unlocks(const QByteArray & message, const quint16 &re
                 unlocks.push_back(signature_unlock(message));
             }
         }
-        if(addr->type_m==qblocks::Address::Alias_typ)
+        if(addr->type()==qblocks::Address::Alias_typ)
         {
             unlocks.push_back(std::shared_ptr<qblocks::Unlock>(new qblocks::Alias_Unlock(ref)));
         }
-        if(addr->type_m==qblocks::Address::NFT_typ)
+        if(addr->type()==qblocks::Address::NFT_typ)
         {
             unlocks.push_back(std::shared_ptr<qblocks::Unlock>(new qblocks::NFT_Unlock(ref)));
         }
@@ -107,7 +107,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
             {
                 const auto sdruc=std::dynamic_pointer_cast<qblocks::Storage_Deposit_Return_Unlock_Condition>(stor_unlock);
                 ret_amount=sdruc->return_amount();
-                const auto ret_address=sdruc->return_address();
+                const auto ret_address=sdruc->address();
                 const auto retUnlcon=std::shared_ptr<qblocks::Unlock_Condition>(new qblocks::Address_Unlock_Condition(ret_address));
                 const auto retOut= std::shared_ptr<qblocks::Output>(new qblocks::Basic_Output(ret_amount,{retUnlcon},{},{}));
                 ret_outputs.push_back(retOut);
@@ -117,9 +117,9 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
             {
                 const auto expiration_cond=std::dynamic_pointer_cast<qblocks::Expiration_Unlock_Condition>(expir);
                 const auto unix_time=expiration_cond->unix_time();
-                const auto ret_address=expiration_cond->return_address();
+                const auto ret_address=expiration_cond->address();
 
-                if(ret_address->type_m==qblocks::Address::Ed25519_typ)
+                if(ret_address->type()==qblocks::Address::Ed25519_typ)
                 {
 
                     if(ret_address->addr()==get_address()->addr())
