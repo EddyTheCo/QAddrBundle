@@ -32,7 +32,7 @@ public:
     std::vector<std::shared_ptr<qblocks::Input>> inputs;
     std::vector<qiota::qblocks::Output::types> ref_typs;
     std::vector<std::shared_ptr<qblocks::Unlock>> unlocks;
-    std::map<qblocks::c_array,qiota::qblocks::quint256> native_tokens;
+    std::map<qblocks::c_array,quint256> native_tokens;
 
 private:
     const std::pair<QByteArray,QByteArray> key_pair;
