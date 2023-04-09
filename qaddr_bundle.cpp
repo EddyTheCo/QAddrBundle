@@ -170,16 +170,16 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
             prevOutputSer.from_object<qblocks::Output>(*v.output());
             auto Inputs_Commitment1=QCryptographicHash::hash(prevOutputSer, QCryptographicHash::Blake2b_256);
             Inputs_Commitments+=Inputs_Commitment1;
-            if(output_->type_m!=qblocks::Output::Basic_typ)
+            if(output_->type()!=qblocks::Output::Basic_typ)
             {
-                if(output_->type_m!=qblocks::Output::Foundry_typ&&output_->get_id()==c_array(32,0))
+                if(output_->type()!=qblocks::Output::Foundry_typ&&output_->get_id()==c_array(32,0))
                 {
                     output_->set_id(v.metadata().outputid_.hash<QCryptographicHash::Blake2b_256>());
                 }
                 output_->consume();
-                if(output_->type_m==qblocks::Output::Foundry_typ)foundry_outputs.push_back(output_);
-                if(output_->type_m==qblocks::Output::Alias_typ)alias_outputs.push_back(output_);
-                if(output_->type_m==qblocks::Output::NFT_typ)nft_outputs.push_back(output_);
+                if(output_->type()==qblocks::Output::Foundry_typ)foundry_outputs.push_back(output_);
+                if(output_->type()==qblocks::Output::Alias_typ)alias_outputs.push_back(output_);
+                if(output_->type()==qblocks::Output::NFT_typ)nft_outputs.push_back(output_);
             }
             amount+=output_->amount_-ret_amount;
 
