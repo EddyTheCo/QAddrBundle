@@ -168,8 +168,8 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
 
             qblocks::c_array prevOutputSer;
             prevOutputSer.from_object<qblocks::Output>(*v.output());
-            auto Inputs_Commitment1=QCryptographicHash::hash(prevOutputSer, QCryptographicHash::Blake2b_256);
-            Inputs_Commitments+=Inputs_Commitment1;
+            auto Input_hash=QCryptographicHash::hash(prevOutputSer, QCryptographicHash::Blake2b_256);
+            Inputs_hash+=Input_hash;
             if(output_->type()!=qblocks::Output::Basic_typ)
             {
                 if(output_->type()!=qblocks::Output::Foundry_typ&&output_->get_id()==c_array(32,0))

@@ -23,7 +23,7 @@ public:
     std::shared_ptr<qblocks::Unlock> signature_unlock(const QByteArray & message)const;
     void create_unlocks(const QByteArray & message,const quint16& ref=0);
     std::vector<std::shared_ptr<qblocks::Native_Token>> get_tokens(qblocks::c_array tokenid="" )const;
-    qblocks::c_array Inputs_Commitments;
+    qblocks::c_array Inputs_hash;
     quint64 amount;
     std::vector<std::shared_ptr<qblocks::Output>> ret_outputs;
     std::vector<std::shared_ptr<qblocks::Output>> alias_outputs;
