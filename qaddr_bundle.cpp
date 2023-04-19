@@ -13,7 +13,7 @@ using namespace qblocks;
 
 AddressBundle::AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m):key_pair(key_pair_m),
     addr(std::shared_ptr<Address>(new Ed25519_Address(QCryptographicHash::hash(key_pair.first,QCryptographicHash::Blake2b_256)))),
-  amount(0)
+    amount(0)
 { };
 AddressBundle::AddressBundle(std::shared_ptr<Address> addr_m):addr(addr_m),amount(0)
 { };
@@ -119,31 +119,28 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
                 const auto unix_time=expiration_cond->unix_time();
                 const auto ret_address=expiration_cond->address();
 
-                if(ret_address->type()==qblocks::Address::Ed25519_typ)
+                if(ret_address->addr()==get_address()->addr())
                 {
-
-                    if(ret_address->addr()==get_address()->addr())
+                    if(stor_unlock)
                     {
-                        if(stor_unlock)
-                        {
-                            ret_outputs.pop_back();
-                            ret_amount=0;
-                        }
-                        if(cday<=unix_time)
-                        {
-                            outs_.pop_back();
-                            continue;
-                        }
+                        ret_outputs.pop_back();
+                        ret_amount=0;
                     }
-                    else
+                    if(cday<=unix_time)
                     {
-                        if(cday>unix_time)
-                        {
-                            outs_.pop_back();
-                            continue;
-                        }
+                        outs_.pop_back();
+                        continue;
                     }
                 }
+                else
+                {
+                    if(cday>unix_time)
+                    {
+                        outs_.pop_back();
+                        continue;
+                    }
+                }
+
 
             }
             const auto time_lock=output_->get_unlock_(qblocks::Unlock_Condition::Timelock_typ);
