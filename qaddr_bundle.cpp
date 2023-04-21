@@ -136,11 +136,11 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
                 {
                     if(cday>unix_time)
                     {
+                        if(stor_unlock)ret_outputs.pop_back();
                         outs_.pop_back();
                         continue;
                     }
                 }
-
 
             }
             const auto time_lock=output_->get_unlock_(qblocks::Unlock_Condition::Timelock_typ);
