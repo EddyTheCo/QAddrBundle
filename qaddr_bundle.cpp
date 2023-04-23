@@ -15,11 +15,11 @@ AddressBundle::AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m)
     addr(std::shared_ptr<Address>(new Ed25519_Address(QCryptographicHash::hash(key_pair.first,QCryptographicHash::Blake2b_256)))),
     amount(0)
 { };
-AddressBundle::AddressBundle(std::shared_ptr<Address> addr_m):addr(addr_m),amount(0)
+AddressBundle::AddressBundle(std::shared_ptr<const Address> addr_m):addr(addr_m),amount(0)
 { };
 
 
-std::shared_ptr<qblocks::Address> AddressBundle::get_address(void)const
+std::shared_ptr<const qblocks::Address> AddressBundle::get_address(void)const
 {
     return addr;
 }
@@ -32,19 +32,19 @@ qblocks::signature AddressBundle::sign(const QByteArray & message)const
 {
     return qblocks::signature(qed25519::sign(key_pair,message));
 }
-std::shared_ptr<qblocks::Signature> AddressBundle::signature(const QByteArray & message)const
+std::shared_ptr<const qblocks::Signature> AddressBundle::signature(const QByteArray & message)const
 {
     return std::shared_ptr<qblocks::Signature>
             (new qblocks::Ed25519_Signature(key_pair.first,
                                             sign(message)));
 }
-std::shared_ptr<qblocks::Unlock> AddressBundle::signature_unlock(const QByteArray & message)const
+std::shared_ptr<const qblocks::Unlock> AddressBundle::signature_unlock(const QByteArray & message)const
 {
     return std::shared_ptr<qblocks::Unlock>(new qblocks::Signature_Unlock(signature(message)));
 }
-std::vector<std::shared_ptr<qblocks::Native_Token>> AddressBundle::get_tokens(qblocks::c_array tokenid )const
+std::vector<std::shared_ptr<const qblocks::Native_Token>> AddressBundle::get_tokens(qblocks::c_array tokenid )const
 {
-    std::vector<std::shared_ptr<qblocks::Native_Token>> var;
+    std::vector<std::shared_ptr<const qblocks::Native_Token>> var;
     if(tokenid!="")
     {
         auto search = native_tokens.find(tokenid);
@@ -105,7 +105,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
             quint64 ret_amount=0;
             if(stor_unlock)
             {
-                const auto sdruc=std::dynamic_pointer_cast<qblocks::Storage_Deposit_Return_Unlock_Condition>(stor_unlock);
+                const auto sdruc=std::dynamic_pointer_cast<const qblocks::Storage_Deposit_Return_Unlock_Condition>(stor_unlock);
                 ret_amount=sdruc->return_amount();
                 const auto ret_address=sdruc->address();
                 const auto retUnlcon=std::shared_ptr<qblocks::Unlock_Condition>(new qblocks::Address_Unlock_Condition(ret_address));
@@ -115,7 +115,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
             const auto expir=output_->get_unlock_(qblocks::Unlock_Condition::Expiration_typ);
             if(expir)
             {
-                const auto expiration_cond=std::dynamic_pointer_cast<qblocks::Expiration_Unlock_Condition>(expir);
+                const auto expiration_cond=std::dynamic_pointer_cast<const qblocks::Expiration_Unlock_Condition>(expir);
                 const auto unix_time=expiration_cond->unix_time();
                 const auto ret_address=expiration_cond->address();
 
@@ -146,7 +146,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
             const auto time_lock=output_->get_unlock_(qblocks::Unlock_Condition::Timelock_typ);
             if(time_lock)
             {
-                const auto time_lock_cond=std::dynamic_pointer_cast<qblocks::Timelock_Unlock_Condition>(time_lock);
+                const auto time_lock_cond=std::dynamic_pointer_cast<const qblocks::Timelock_Unlock_Condition>(time_lock);
                 const auto unix_time=time_lock_cond->unix_time();
                 if(cday<unix_time)
                 {
