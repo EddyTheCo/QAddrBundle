@@ -15,11 +15,11 @@ AddressBundle::AddressBundle(const std::pair<QByteArray,QByteArray>& key_pair_m)
     addr(std::shared_ptr<Address>(new Ed25519_Address(QCryptographicHash::hash(key_pair.first,QCryptographicHash::Blake2b_256)))),
     amount(0)
 { };
-AddressBundle::AddressBundle(std::shared_ptr<const Address> addr_m):addr(addr_m),amount(0)
+AddressBundle::AddressBundle(const std::shared_ptr<const Address>& addr_m):addr(addr_m),amount(0)
 { };
 
 
-std::shared_ptr<const qblocks::Address> AddressBundle::get_address(void)const
+std::shared_ptr<const Address> AddressBundle::get_address(void)const
 {
     return addr;
 }
@@ -28,36 +28,22 @@ QString AddressBundle::get_address_bech32(QString hrp)const
     const auto addr=qencoding::qbech32::Iota::encode(hrp,get_address()->addr());
     return addr;
 }
-qblocks::signature AddressBundle::sign(const QByteArray & message)const
+pvector<const Native_Token> AddressBundle::get_tokens(const c_array &tokenid )const
 {
-    return qblocks::signature(qed25519::sign(key_pair,message));
-}
-std::shared_ptr<const qblocks::Signature> AddressBundle::signature(const QByteArray & message)const
-{
-    return std::shared_ptr<qblocks::Signature>
-            (new qblocks::Ed25519_Signature(key_pair.first,
-                                            sign(message)));
-}
-std::shared_ptr<const qblocks::Unlock> AddressBundle::signature_unlock(const QByteArray & message)const
-{
-    return std::shared_ptr<qblocks::Unlock>(new qblocks::Signature_Unlock(signature(message)));
-}
-std::vector<std::shared_ptr<const qblocks::Native_Token>> AddressBundle::get_tokens(qblocks::c_array tokenid )const
-{
-    std::vector<std::shared_ptr<const qblocks::Native_Token>> var;
+    pvector<const Native_Token> var;
     if(tokenid!="")
     {
         auto search = native_tokens.find(tokenid);
         if(search != native_tokens.end())
         {
-            var.push_back(std::shared_ptr<qblocks::Native_Token>(new qblocks::Native_Token(search->first,search->second)));
+            var.push_back(Native_Token::Native(search->first,search->second));
         }
     }
     else
     {
         for (const auto& v : native_tokens)
         {
-            var.push_back(std::shared_ptr<qblocks::Native_Token>(new qblocks::Native_Token(v.first,v.second)));
+            var.push_back(Native_Token::Native(v.first,v.second));
         }
     }
     return var;
@@ -66,15 +52,15 @@ void AddressBundle::create_unlocks(const QByteArray & message, const quint16 &re
 {
     for(const auto& v:inputs)
     {
-        if(addr->type()==qblocks::Address::Ed25519_typ)
+        if(addr->type()==Address::Ed25519_typ)
         {
             if(unlocks.size())
             {
-                unlocks.push_back(std::shared_ptr<qblocks::Unlock>(new qblocks::Reference_Unlock(ref)));
+                unlocks.push_back(Unlock::Reference(ref));
             }
             else
             {
-                unlocks.push_back(signature_unlock(message));
+                unlocks.push_back(Unlock::Signature(Signature::Ed25519(key_pair.first,qed25519::sign(key_pair,message))));
             }
         }
         if(addr->type()==qblocks::Address::Alias_typ)
@@ -101,21 +87,21 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
         {
             const auto output_=v.output();
 
-            const auto  stor_unlock=output_->get_unlock_(qblocks::Unlock_Condition::Storage_Deposit_Return_typ);
+            const auto  stor_unlock=output_->get_unlock_(Unlock_Condition::Storage_Deposit_Return_typ);
             quint64 ret_amount=0;
             if(stor_unlock)
             {
-                const auto sdruc=std::dynamic_pointer_cast<const qblocks::Storage_Deposit_Return_Unlock_Condition>(stor_unlock);
+                const auto sdruc=std::static_pointer_cast<const Storage_Deposit_Return_Unlock_Condition>(stor_unlock);
                 ret_amount=sdruc->return_amount();
                 const auto ret_address=sdruc->address();
-                const auto retUnlcon=std::shared_ptr<qblocks::Unlock_Condition>(new qblocks::Address_Unlock_Condition(ret_address));
-                const auto retOut= std::shared_ptr<qblocks::Output>(new qblocks::Basic_Output(ret_amount,{retUnlcon},{},{}));
+                const auto retUnlcon = Unlock_Condition::Address(ret_address);
+                const auto retOut = Output::Basic(ret_amount,{retUnlcon});
                 ret_outputs.push_back(retOut);
             }
-            const auto expir=output_->get_unlock_(qblocks::Unlock_Condition::Expiration_typ);
+            const auto expir=output_->get_unlock_(Unlock_Condition::Expiration_typ);
             if(expir)
             {
-                const auto expiration_cond=std::dynamic_pointer_cast<const qblocks::Expiration_Unlock_Condition>(expir);
+                const auto expiration_cond=std::static_pointer_cast<const Expiration_Unlock_Condition>(expir);
                 const auto unix_time=expiration_cond->unix_time();
                 const auto ret_address=expiration_cond->address();
 
@@ -143,10 +129,10 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
                 }
 
             }
-            const auto time_lock=output_->get_unlock_(qblocks::Unlock_Condition::Timelock_typ);
+            const auto time_lock=output_->get_unlock_(Unlock_Condition::Timelock_typ);
             if(time_lock)
             {
-                const auto time_lock_cond=std::dynamic_pointer_cast<const qblocks::Timelock_Unlock_Condition>(time_lock);
+                const auto time_lock_cond=std::static_pointer_cast<const Timelock_Unlock_Condition>(time_lock);
                 const auto unix_time=time_lock_cond->unix_time();
                 if(cday<unix_time)
                 {
@@ -160,28 +146,26 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
                 native_tokens[v->token_id()]+=v->amount();
             }
 
-            inputs.push_back(std::shared_ptr<qblocks::Input>(new qblocks::UTXO_Input(v.metadata().transaction_id_,
-                                                                                     v.metadata().output_index_)));
+            inputs.push_back(Input::UTXO(v.metadata().transaction_id_,
+                                         v.metadata().output_index_));
+
 
             qblocks::c_array prevOutputSer;
-            prevOutputSer.from_object<qblocks::Output>(*v.output());
+            prevOutputSer.from_object<Output>(*v.output());
             auto Input_hash=QCryptographicHash::hash(prevOutputSer, QCryptographicHash::Blake2b_256);
             Inputs_hash+=Input_hash;
-            if(output_->type()!=qblocks::Output::Basic_typ)
+            if(output_->type()!=Output::Basic_typ)
             {
-                if(output_->type()!=qblocks::Output::Foundry_typ&&output_->get_id()==c_array(32,0))
+                if(output_->type()!=Output::Foundry_typ&&output_->get_id()==c_array(32,0))
                 {
                     output_->set_id(v.metadata().outputid_.hash<QCryptographicHash::Blake2b_256>());
                 }
                 output_->consume();
-                if(output_->type()==qblocks::Output::Foundry_typ)foundry_outputs.push_back(output_);
-                if(output_->type()==qblocks::Output::Alias_typ)alias_outputs.push_back(output_);
-                if(output_->type()==qblocks::Output::NFT_typ)nft_outputs.push_back(output_);
+                if(output_->type()==Output::Foundry_typ)foundry_outputs.push_back(output_);
+                if(output_->type()==Output::Alias_typ)alias_outputs.push_back(output_);
+                if(output_->type()==Output::NFT_typ)nft_outputs.push_back(output_);
             }
             amount+=output_->amount_-ret_amount;
-
-
-
         }
         outs_.pop_back();
     }
