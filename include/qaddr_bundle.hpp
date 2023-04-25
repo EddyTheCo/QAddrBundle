@@ -26,18 +26,16 @@ public:
     pvector<const Native_Token> get_tokens(const c_array& tokenid="" )const;
     qblocks::c_array Inputs_hash;
     quint64 amount;
-    pvector<const qblocks::Output> ret_outputs;
-    pvector<qblocks::Output> alias_outputs;
-    pvector<qblocks::Output> foundry_outputs;
-    pvector<qblocks::Output> nft_outputs;
-    pvector<const qblocks::Input> inputs;
-    std::vector<qiota::qblocks::Output::types> ref_typs;
-    pvector<const qblocks::Unlock> unlocks;
+    pvector<const Output> ret_outputs;
+    pvector<Output> alias_outputs,foundry_outputs, nft_outputs;
+    pvector<const Input> inputs;
+    std::vector<Output::types> ref_typs;
+    pvector<const Unlock> unlocks;
     std::map<qblocks::c_array,quint256> native_tokens;
 
 private:
     const std::pair<QByteArray,QByteArray> key_pair;
-    std::shared_ptr<const qblocks::Address> addr;
+    std::shared_ptr<const Address> addr;
 
 
 };
