@@ -4,7 +4,6 @@
 #include"crypto/qed25519.hpp"
 #include<QDataStream>
 #include<QDateTime>
-#include<set>
 #include<map>
 using namespace qcrypto;
 namespace qiota{
@@ -77,14 +76,13 @@ void AddressBundle::create_unlocks(const QByteArray & message, const quint16 &re
 void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint64 amount_need_it)
 {
 
-    const auto cday=QDateTime::currentDateTime().toSecsSinceEpoch();
-    std::set<QString> otids;
     while(((amount_need_it)?amount<amount_need_it:1)&&!outs_.empty())
     {
         const auto v=outs_.back();
 
         if(!v.metadata().is_spent_&&otids.insert(v.metadata().outputid_).second)
         {
+
             const auto output_=v.output();
 
             const auto  stor_unlock=output_->get_unlock_(Unlock_Condition::Storage_Deposit_Return_typ);
@@ -97,6 +95,20 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
                 const auto retUnlcon = Unlock_Condition::Address(ret_address);
                 const auto retOut = Output::Basic(ret_amount,{retUnlcon});
                 ret_outputs.push_back(retOut);
+            }
+            const auto cday=QDateTime::currentDateTime().toSecsSinceEpoch();
+            const auto time_lock=output_->get_unlock_(Unlock_Condition::Timelock_typ);
+            if(time_lock)
+            {
+                const auto time_lock_cond=std::static_pointer_cast<const Timelock_Unlock_Condition>(time_lock);
+                const auto unix_time=time_lock_cond->unix_time();
+                if(cday<unix_time)
+                {
+                    to_unlock.push_back(unix_time);
+                    outs_.pop_back();
+                    if(stor_unlock)ret_outputs.pop_back();
+                    continue;
+                }
             }
             const auto expir=output_->get_unlock_(Unlock_Condition::Expiration_typ);
             if(expir)
@@ -126,20 +138,11 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
                         outs_.pop_back();
                         continue;
                     }
+                    to_expire.push_back(unix_time);
                 }
 
             }
-            const auto time_lock=output_->get_unlock_(Unlock_Condition::Timelock_typ);
-            if(time_lock)
-            {
-                const auto time_lock_cond=std::static_pointer_cast<const Timelock_Unlock_Condition>(time_lock);
-                const auto unix_time=time_lock_cond->unix_time();
-                if(cday<unix_time)
-                {
-                    outs_.pop_back();
-                    continue;
-                }
-            }
+
 
             for(const auto& v:output_->native_tokens_)
             {
