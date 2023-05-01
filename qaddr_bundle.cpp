@@ -161,7 +161,7 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint6
             {
                 if(output_->type()!=Output::Foundry_typ&&output_->get_id()==c_array(32,0))
                 {
-                    output_->set_id(v.metadata().outputid_.hash<QCryptographicHash::Blake2b_256>());
+                    output_->set_id(v.metadata().outputid_);
                 }
                 output_->consume();
                 if(output_->type()==Output::Foundry_typ)foundry_outputs.push_back(output_);
