@@ -25,6 +25,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(cmake/FindQt.cmake)
+set(CMAKE_AUTOMOC ON)
+
 find_package(qclient 0 QUIET )
 include(FetchContent)
 if(NOT qclient_FOUND AND NOT TARGET qclient)
