@@ -24,8 +24,8 @@ endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include(cmake/FindQt.cmake)
-set(CMAKE_AUTOMOC ON)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+qt_standard_project_setup()
 
 find_package(qclient 0 QUIET )
 include(FetchContent)
