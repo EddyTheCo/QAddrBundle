@@ -73,10 +73,12 @@ void AddressBundle::create_unlocks(const QByteArray & message, const quint16 &re
     }
 
 }
-void AddressBundle::consume_outputs(std::vector<Node_output> &outs_,const quint64 amount_need_it)
+void AddressBundle::consume_outputs(std::vector<Node_output> &outs_, const quint64 amount_need_it, quint16 howMany)
 {
 
-    while(((amount_need_it)?amount<amount_need_it:1)&&!outs_.empty())
+    const auto size=outs_.size();
+
+    while(((amount_need_it)?amount<amount_need_it:true)&&((howMany>=size)||(!howMany)?!outs_.empty():outs_.size()+howMany>size))
     {
         const auto v=outs_.back();
 

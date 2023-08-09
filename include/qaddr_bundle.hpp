@@ -19,7 +19,7 @@ public:
     std::shared_ptr<const Address> get_address(void)const;
 
 
-    void consume_outputs(std::vector<Node_output> &outs_, const quint64 amount_need_it=0);
+    void consume_outputs(std::vector<Node_output> &outs_, const quint64 amount_need_it=0, const quint16 howMany=0);
 
 
     void create_unlocks(const QByteArray & message,const quint16& ref=0);
