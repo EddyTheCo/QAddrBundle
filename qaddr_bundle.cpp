@@ -77,14 +77,11 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_, const quint
 {
 
     const auto size=outs_.size();
-
     while(((amount_need_it)?amount<amount_need_it:true)&&((howMany>=size)||(!howMany)?!outs_.empty():outs_.size()+howMany>size))
     {
         const auto v=outs_.back();
-
         if(!v.metadata().is_spent_&&otids.insert(v.metadata().outputid_).second)
         {
-
             const auto output_=v.output();
 
             const auto  stor_unlock=output_->get_unlock_(Unlock_Condition::Storage_Deposit_Return_typ);
@@ -119,7 +116,8 @@ void AddressBundle::consume_outputs(std::vector<Node_output> &outs_, const quint
                 const auto unix_time=expiration_cond->unix_time();
                 const auto ret_address=expiration_cond->address();
 
-                if(ret_address->addr()==get_address()->addr())
+                const auto  addr_unlock=std::static_pointer_cast<const Address_Unlock_Condition>(output_->get_unlock_(Unlock_Condition::Address_typ));
+                if(ret_address->addr()==get_address()->addr()&&addr_unlock->address()->addr()!=get_address()->addr())
                 {
                     if(stor_unlock)
                     {
