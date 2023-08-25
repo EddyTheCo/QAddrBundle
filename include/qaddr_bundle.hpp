@@ -24,6 +24,8 @@ public:
 
     void create_unlocks(const QByteArray & message,const quint16& ref=0);
     pvector<const Native_Token> get_tokens(const c_array& tokenid="" )const;
+
+    void add_tokens(const std::map<qblocks::c_array,quint256>&);
     qblocks::c_array Inputs_hash;
     quint64 amount;
     pvector<const Output> ret_outputs;
