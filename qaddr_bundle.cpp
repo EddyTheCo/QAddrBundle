@@ -27,6 +27,13 @@ QString AddressBundle::get_address_bech32(QString hrp)const
     const auto addr=qencoding::qbech32::Iota::encode(hrp,get_address()->addr());
     return addr;
 }
+void AddressBundle::add_tokens(const std::map<qblocks::c_array,quint256>& others)
+{
+    for (const auto& v : others)
+    {
+        native_tokens[v.first]+=v.second;
+    }
+}
 pvector<const Native_Token> AddressBundle::get_tokens(const c_array &tokenid )const
 {
     pvector<const Native_Token> var;
