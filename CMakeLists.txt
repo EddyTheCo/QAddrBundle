@@ -70,7 +70,7 @@ FetchContent_MakeAvailable(qed25519)
 
 
 target_include_directories(qaddr_bundle PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/QtAddressBundle>")
+	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/qaddr_bundle>")
 
 
 
@@ -83,17 +83,17 @@ install(TARGETS qaddr_bundle
 	)
 
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/
-	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/QtAddressBundle
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/qaddr_bundle
 	)
 
 install(EXPORT qaddr_bundleTargets
 	FILE qaddr_bundleTargets.cmake
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/QtAddressBundle
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/qaddr_bundle
 	)
 include(CMakePackageConfigHelpers)
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
 	"${CMAKE_CURRENT_BINARY_DIR}/qaddr_bundleConfig.cmake"
-	INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/QtAddressBundle
+	INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/qaddr_bundle
 	NO_SET_AND_CHECK_MACRO
 	NO_CHECK_REQUIRED_COMPONENTS_MACRO
 	)
@@ -105,13 +105,14 @@ write_basic_package_version_file(
 install(FILES
 	${CMAKE_CURRENT_BINARY_DIR}/qaddr_bundleConfig.cmake
 	${CMAKE_CURRENT_BINARY_DIR}/qaddr_bundleConfigVersion.cmake
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/QtAddressBundle
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/qaddr_bundle
 	)
 export(EXPORT qaddr_bundleTargets
 	FILE "${CMAKE_CURRENT_BINARY_DIR}/qaddr_bundleTargets.cmake"
 	)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+	set(CPACK_PACKAGE_CONTACT "estervtech")
 	include(CTest)
 	set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-v${SEMVER}-${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_VERSION}-${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_CXX_COMPILER_ID}")
 	if(NOT BUILD_SHARED_LIBS)
