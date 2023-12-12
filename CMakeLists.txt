@@ -16,22 +16,29 @@ version_from_git(
 
 project(QtaddressBundle VERSION ${VERSION} DESCRIPTION "IOTA-QT address api " LANGUAGES CXX)
 
-set(default_build_type "Release")
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-	message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-	set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
-		STRING "Choose the type of build." FORCE)
-	# Set the possible values of build type for cmake-gui
-	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-		"Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 include(GNUInstallDirs)
+
+FetchContent_Declare(
+        nodeConection
+        GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
+        GIT_TAG expose_qml_or_not
+        FIND_PACKAGE_ARGS 0.4 CONFIG
+        )
+FetchContent_MakeAvailable(nodeConection)
+
+FetchContent_Declare(
+        account
+        GIT_REPOSITORY https://github.com/EddyTheCo/account.git
+        GIT_TAG expose_qml_or_not
+        FIND_PACKAGE_ARGS 0.4 CONFIG
+        )
+FetchContent_MakeAvailable(account)
 
 find_package(Qt6 COMPONENTS Core)
 if (Qt6_FOUND)
@@ -44,41 +51,13 @@ if (Qt6_FOUND)
 	target_link_libraries(qaddr_bundle PUBLIC Qt6::Core)
 endif(Qt6_FOUND)
 
-if(NOT TARGET qclient)
-	FetchContent_Declare(
-		qclient
-		GIT_REPOSITORY https://github.com/EddyTheCo/Qclient-IOTA.git
-		GIT_TAG v0.2.3
-		FIND_PACKAGE_ARGS 0.2 CONFIG
-		)
-	FetchContent_MakeAvailable(qclient)
-endif(NOT TARGET qclient)
-
-
-FetchContent_Declare(
-	qbech32
-	GIT_REPOSITORY https://github.com/EddyTheCo/Qbech32.git
-	GIT_TAG v0.0.2
-	FIND_PACKAGE_ARGS 0.0 CONFIG
-	)
-FetchContent_MakeAvailable(qbech32)
-
-FetchContent_Declare(
-	qed25519
-	GIT_REPOSITORY https://github.com/EddyTheCo/Qed25519.git
-	GIT_TAG v0.0.2
-	FIND_PACKAGE_ARGS 0.0 CONFIG
-	)
-FetchContent_MakeAvailable(qed25519)
-
 
 target_include_directories(qaddr_bundle PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/qaddr_bundle>")
 
 
+target_link_libraries(qaddr_bundle PUBLIC nodeConection account)
 
-target_link_libraries(qaddr_bundle PUBLIC qclient qbech32)
-target_link_libraries(qaddr_bundle PRIVATE qed25519)
 
 install(TARGETS qaddr_bundle
 	EXPORT qaddr_bundleTargets
