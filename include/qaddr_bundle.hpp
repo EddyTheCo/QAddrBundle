@@ -7,7 +7,7 @@
 
 #include <QObject>
 #include <QtCore/QtGlobal>
-#if defined(WINDOWS_QWALLET)
+#if defined(WINDOWS_QADDR)
 # define QADDR_EXPORT Q_DECL_EXPORT
 #else
 #define QADDR_EXPORT Q_DECL_IMPORT
