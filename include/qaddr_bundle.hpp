@@ -8,9 +8,9 @@
 #include <QObject>
 #include <QtCore/QtGlobal>
 #if defined(WINDOWS_QWALLET)
-# define QWALLET_EXPORT Q_DECL_EXPORT
+# define QADDR_EXPORT Q_DECL_EXPORT
 #else
-#define QWALLET_EXPORT Q_DECL_IMPORT
+#define QADDR_EXPORT Q_DECL_IMPORT
 #endif
 
 namespace qiota{
@@ -25,7 +25,7 @@ struct InBox {
     std::shared_ptr<Output> output=nullptr;
     quint64 amount=0;
 };
-class QWALLET_EXPORT AddressBox:public QObject
+class QADDR_EXPORT AddressBox:public QObject
 {
     Q_OBJECT
 
