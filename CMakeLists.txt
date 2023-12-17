@@ -28,7 +28,7 @@ include(GNUInstallDirs)
 FetchContent_Declare(
     IotaNodeConn
     GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
-    GIT_TAG EddyTheCo-patch-1
+    GIT_TAG develop
     FIND_PACKAGE_ARGS 1.0 CONFIG
 )
 FetchContent_MakeAvailable(IotaNodeConn)
@@ -36,7 +36,7 @@ FetchContent_MakeAvailable(IotaNodeConn)
 FetchContent_Declare(
     IotaAccount
     GIT_REPOSITORY https://github.com/EddyTheCo/account.git
-    GIT_TAG EddyTheCo-patch-1
+    GIT_TAG develop
     FIND_PACKAGE_ARGS 1.0 CONFIG
 )
 FetchContent_MakeAvailable(IotaAccount)
