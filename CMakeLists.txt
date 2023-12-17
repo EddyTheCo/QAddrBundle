@@ -53,6 +53,7 @@ endif(Qt6_FOUND)
 
 add_library(addrBundle qaddr_bundle.cpp include/qaddr_bundle.hpp)
 add_library(${PROJECT_NAME}::addrBundle ALIAS addrBundle)
+target_compile_definitions(addrBundle PRIVATE WINDOWS_QADDR)
 
 if (Qt6_FOUND)
     target_link_libraries(addrBundle PUBLIC Qt6::Core)
