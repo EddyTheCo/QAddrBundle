@@ -1,8 +1,9 @@
 #pragma once
 
-#include"block/qinputs.hpp"
-#include"block/qoutputs.hpp"
-#include"client/qnode_outputs.hpp"
+#include "block/qinputs.hpp"
+#include "block/qoutputs.hpp"
+#include "block/qunlocks.hpp"
+#include "client/qnode_outputs.hpp"
 
 #include <QObject>
 #include <QtCore/QtGlobal>
