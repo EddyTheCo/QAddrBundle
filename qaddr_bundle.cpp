@@ -35,16 +35,16 @@ QString AddressBox::getAddressBech32(const QString hrp)const
 void AddressBox::monitorToExpire(const c_array outId,const quint32 unixTime)
 {
     const auto triger=(unixTime-QDateTime::currentDateTime().toSecsSinceEpoch())*1000;
-    QTimer::singleShot(triger,this,[=,this](){
+    QTimer::singleShot(triger,this,[=](){
         rmInput(outId);
     });
 }
 void AddressBox::monitorToUnlock(const c_array outId, const quint32 unixTime)
 {
     const auto triger=(unixTime-QDateTime::currentDateTime().toSecsSinceEpoch())*1000;
-    QTimer::singleShot(triger,this,[=,this](){
+    QTimer::singleShot(triger,this,[=](){
         auto resp=NodeConnection::instance()->mqtt()->get_outputs_outputId(outId.toHexString());
-        connect(resp,&ResponseMqtt::returned,this,[=,this](QJsonValue data){
+        connect(resp,&ResponseMqtt::returned,this,[=](QJsonValue data){
             auto node_outputs=std::vector<Node_output>{Node_output(data)};
             getOutputs({node_outputs});
             resp->deleteLater();
@@ -55,7 +55,7 @@ void AddressBox::monitorToSpend(const c_array outId)
 {
 
     auto resp=NodeConnection::instance()->mqtt()->get_outputs_outputId(outId.toHexString());
-    connect(resp,&ResponseMqtt::returned,this,[=,this](QJsonValue data){
+    connect(resp,&ResponseMqtt::returned,this,[=](QJsonValue data){
         const auto node_output=Node_output(data);
         if(node_output.metadata().is_spent_)
         {
@@ -109,7 +109,7 @@ void AddressBox::rmInput(const c_array outId)
 void AddressBox::addAddrBox(const c_array outId,AddressBox* addrBox)
 {
 
-    connect(addrBox,&AddressBox::amountChanged,this,[this](const auto prevA,const auto nextA){
+    connect(addrBox,&AddressBox::amountChanged,this,[=](const auto prevA,const auto nextA){
         setAmount(m_amount-prevA+nextA);
     });
     m_AddrBoxes.insert(outId,addrBox);
@@ -129,7 +129,7 @@ void AddressBox::rmAddrBox(const c_array outId,const quint64 outputAmount)
     const auto address=var->getAddress()->addr();
     emit addrRemoved(address);
 
-    connect(var,&QObject::destroyed,this,[=,this]{
+    connect(var,&QObject::destroyed,this,[=]{
         emit inputRemoved(outId);
         setAmount(m_amount-outputAmount);
     });
