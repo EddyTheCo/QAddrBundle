@@ -8,15 +8,14 @@ namespace qiota{
 
 using namespace qblocks;
 
-AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,QObject *parent)
-    :QObject(parent),m_keyPair(keyPair),
+AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair)
+    :m_keyPair(keyPair),
     m_addr(std::shared_ptr<Address>(new Ed25519_Address(
         QCryptographicHash::hash(keyPair.first,QCryptographicHash::Blake2b_256)))),
     m_amount(0)
     {
     };
-AddressBox::AddressBox(const std::shared_ptr<const Address>& addr,
-                       QObject *parent,c_array outId):QObject(parent),m_addr(addr),m_amount(0),m_outId(outId)
+AddressBox::AddressBox(const std::shared_ptr<const Address>& addr, c_array outId):m_addr(addr),m_amount(0),m_outId(outId)
     {
     };
 std::shared_ptr<const Address> AddressBox::getAddress(void)const
@@ -36,7 +35,9 @@ void AddressBox::monitorToExpire(const c_array outId,const quint32 unixTime)
 {
     const auto triger=(unixTime-QDateTime::currentDateTime().toSecsSinceEpoch())*1000;
     QTimer::singleShot(triger,this,[=](){
-        rmInput(outId);
+        std::vector<c_array>  rm_inputs;
+        std::vector<c_array>  rm_address;
+        rmInput(outId,rm_inputs,rm_address);
     });
 }
 void AddressBox::monitorToUnlock(const c_array outId, const quint32 unixTime)
@@ -60,12 +61,14 @@ void AddressBox::monitorToSpend(const c_array outId)
         if(node_output.metadata().is_spent_)
         {
             resp->deleteLater();
-            rmInput(outId);
+            std::vector<c_array>  rm_inputs;
+            std::vector<c_array>  rm_address;
+            rmInput(outId,rm_inputs,rm_address);
         }
 
     });
 }
-void AddressBox::addInput(const c_array outId, const InBox inBox)
+void AddressBox::addInput(const c_array outId, const InBox & inBox)
 {
     m_inputs.insert(outId,inBox);
     emit inputAdded(outId);
@@ -75,32 +78,38 @@ void AddressBox::addInput(const c_array outId, const InBox inBox)
         AddressBox* nextAddr=nullptr;
         if(inBox.output->type()==Output::NFT_typ)
         {
-            nextAddr=new AddressBox(Address::NFT(inBox.output->get_id()),this,outId);
+            nextAddr=new AddressBox(Address::NFT(inBox.output->get_id()),outId);
         }
         if(inBox.output->type()==Output::Alias_typ)
         {
-            nextAddr=new AddressBox(Address::Alias(inBox.output->get_id()),this,outId);
-
+            nextAddr=new AddressBox(Address::Alias(inBox.output->get_id()),outId);
         }
         addAddrBox(outId,nextAddr);
     }
     setAmount(m_amount+inBox.amount);
 }
-void AddressBox::rmInput(const c_array outId)
+void AddressBox::rmInput(const c_array outId, std::vector<c_array> & rm_inputs,std::vector<c_array> & rm_addresses)
 {
     if(m_inputs.contains(outId))
     {
-        const auto var=m_inputs.take(outId);
-
-        if(var.output->type()==Output::NFT_typ||var.output->type()==Output::Alias_typ)
+        const auto input=m_inputs.take(outId);
+        const bool isroot=(rm_inputs.size()==0&&rm_addresses.size()==0);
+        quint64 amount=input.amount;
+        rm_inputs.push_back(outId);
+        if(input.output->type()==Output::NFT_typ||input.output->type()==Output::Alias_typ)
         {
-            rmAddrBox(outId,var.amount);
+            const auto addressBox=m_AddrBoxes.take(outId);
+            amount+=addressBox->amount();
+            const auto address=addressBox->getAddress()->addr();
+            rm_addresses.push_back(address);
+            addressBox->clean(rm_inputs,rm_addresses);
         }
-        else
-        {
-            emit inputRemoved(outId);
 
-            setAmount(m_amount-var.amount);
+        if(isroot)
+        {
+            emit inputRemoved(rm_inputs);
+            emit addrRemoved(rm_addresses);
+            setAmount(m_amount-amount);
         }
 
     }
@@ -108,33 +117,19 @@ void AddressBox::rmInput(const c_array outId)
 }
 void AddressBox::addAddrBox(const c_array outId,AddressBox* addrBox)
 {
-
     connect(addrBox,&AddressBox::amountChanged,this,[=](const auto prevA,const auto nextA){
         setAmount(m_amount-prevA+nextA);
     });
     m_AddrBoxes.insert(outId,addrBox);
     emit addrAdded(addrBox);
 }
-void  AddressBox::clean()
+void  AddressBox::clean(std::vector<c_array> & rm_inputs,std::vector<c_array> & rm_addresses)
 {
-    while(!m_inputs.empty())
+    for(const auto &v:m_inputs.keys())
     {
-        rmInput(m_inputs.begin().key());
+        rmInput(v,rm_inputs,rm_addresses);
     }
-    deleteLater();
-}
-void AddressBox::rmAddrBox(const c_array outId,const quint64 outputAmount)
-{
-    const auto var=m_AddrBoxes.take(outId);
-    const auto address=var->getAddress()->addr();
-    emit addrRemoved(address);
-
-    connect(var,&QObject::destroyed,this,[=]{
-        emit inputRemoved(outId);
-        setAmount(m_amount-outputAmount);
-    });
-    var->clean();
-
+    delete this;
 }
 pvector<const Unlock> AddressBox::getUnlocks(const QByteArray & message, const quint16 &ref, const size_t& inputSize)
 {
