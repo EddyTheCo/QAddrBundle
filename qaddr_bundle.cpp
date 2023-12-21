@@ -8,16 +8,31 @@ namespace qiota{
 
 using namespace qblocks;
 
-AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair)
-    :m_keyPair(keyPair),
+AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,
+                       const QString hrp):m_hrp(hrp),m_keyPair(keyPair),
     m_addr(std::shared_ptr<Address>(new Ed25519_Address(
         QCryptographicHash::hash(keyPair.first,QCryptographicHash::Blake2b_256)))),
     m_amount(0)
-    {
-    };
-AddressBox::AddressBox(const std::shared_ptr<const Address>& addr, c_array outId):m_addr(addr),m_amount(0),m_outId(outId)
-    {
-    };
+#if defined(USE_QML)
+    ,m_amountJson(new Qml64(m_amount,this))
+#endif
+{
+#if defined(USE_QML)
+    connect(this, &AddressBox::amountChanged, m_amountJson,[=](quint64 prevA,quint64 nextA)
+            {m_amountJson->setValue(nextA);});
+#endif
+
+};
+AddressBox::AddressBox(const std::shared_ptr<const Address>& addr, c_array outId,const QString hrp):m_hrp(hrp),m_addr(addr),m_amount(0),m_outId(outId)
+#if defined(USE_QML)
+    ,m_amountJson(new Qml64(m_amount,this))
+#endif
+{
+#if defined(USE_QML)
+    connect(this, &AddressBox::amountChanged, m_amountJson,[=](quint64 prevA,quint64 nextA)
+            {m_amountJson->setValue(nextA);});
+#endif
+};
 std::shared_ptr<const Address> AddressBox::getAddress(void)const
 {
     return m_addr;
@@ -26,9 +41,9 @@ QString AddressBox::getAddressHash(void)const
 {
     return m_addr->addrhash().toHexString();
 }
-QString AddressBox::getAddressBech32(const QString hrp)const
+QString AddressBox::getAddressBech32()const
 {
-    const auto addr=qencoding::qbech32::Iota::encode(hrp,m_addr->addr());
+    const auto addr=qencoding::qbech32::Iota::encode(m_hrp,m_addr->addr());
     return addr;
 }
 void AddressBox::monitorToExpire(const c_array outId,const quint32 unixTime)
@@ -78,11 +93,11 @@ void AddressBox::addInput(const c_array outId, const InBox & inBox)
         AddressBox* nextAddr=nullptr;
         if(inBox.output->type()==Output::NFT_typ)
         {
-            nextAddr=new AddressBox(Address::NFT(inBox.output->get_id()),outId);
+            nextAddr=new AddressBox(Address::NFT(inBox.output->get_id()),outId,m_hrp);
         }
         if(inBox.output->type()==Output::Alias_typ)
         {
-            nextAddr=new AddressBox(Address::Alias(inBox.output->get_id()),outId);
+            nextAddr=new AddressBox(Address::Alias(inBox.output->get_id()),outId,m_hrp);
         }
         addAddrBox(outId,nextAddr);
     }
@@ -223,9 +238,7 @@ void AddressBox::getOutputs(std::vector<Node_output> &outs_, const quint64 amoun
                     }
                     monitorToExpire(v.metadata().outputid_,unix_time);
                 }
-
             }
-
             InBox inBox;
             inBox.input=Input::UTXO(v.metadata().transaction_id_,v.metadata().output_index_);
 
@@ -249,6 +262,49 @@ void AddressBox::getOutputs(std::vector<Node_output> &outs_, const quint64 amoun
         outs_.pop_back();
     }
 }
+Qml64::Qml64(const quint64 value,QObject *parent):QObject(parent),m_value(value)
+{
+    connect(NodeConnection::instance(),&NodeConnection::stateChanged,this,&Qml64::intToJSON);
+    intToJSON();
+}
+void Qml64::setValue(const quint64 value)
+{
+    if(value!=m_value)
+    {
+        m_value=value;
+        intToJSON();
+    }
+}
+void Qml64::intToJSON()
+{
+    if(NodeConnection::instance()->state())
+    {
+        auto info=NodeConnection::instance()->rest()->get_api_core_v2_info();
+        connect(info,&Node_info::finished,this,[=]( ){
+            QJsonObject shortValue;
+            shortValue.insert("unit",info->unit);
+            shortValue.insert("value",QString::number(m_value*1.0/std::pow(10,info->decimals),'g', 5));
 
+            QJsonObject largeValue;
+            largeValue.insert("unit",info->subunit);
+            largeValue.insert("value",QString::number(m_value));
+            QJsonObject var;
+            var.insert("shortValue",shortValue);
+            var.insert("largeValue",largeValue);
+
+            if(m_value>std::pow(10,info->decimals*0.8))
+            {
+                var.insert("default",0);
+            }
+            else
+            {
+                var.insert("default",1);
+            }
+            m_json=var;
+            emit jsonChanged();
+            info->deleteLater();
+        });
+    }
+}
 
 }
