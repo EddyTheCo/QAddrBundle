@@ -9,10 +9,10 @@ namespace qiota{
 using namespace qblocks;
 
 AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,
-                       const QString hrp):m_hrp(hrp),m_keyPair(keyPair),
+                       const QString hrp):m_keyPair(keyPair),
     m_addr(std::shared_ptr<Address>(new Ed25519_Address(
         QCryptographicHash::hash(keyPair.first,QCryptographicHash::Blake2b_256)))),
-    m_amount(0)
+    m_amount(0),m_bech32adddress(qencoding::qbech32::Iota::encode(hrp,m_addr->addr())),m_hrp(hrp)
 #if defined(USE_QML)
     ,m_amountJson(new Qml64(m_amount,this))
 #endif
@@ -23,7 +23,9 @@ AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,
 #endif
 
 };
-AddressBox::AddressBox(const std::shared_ptr<const Address>& addr, c_array outId,const QString hrp):m_hrp(hrp),m_addr(addr),m_amount(0),m_outId(outId)
+AddressBox::AddressBox(const std::shared_ptr<const Address>& addr, c_array outId,const QString hrp):
+    m_addr(addr),m_amount(0),m_outId(outId),m_bech32adddress(qencoding::qbech32::Iota::encode(hrp,m_addr->addr()))
+,m_hrp(hrp)
 #if defined(USE_QML)
     ,m_amountJson(new Qml64(m_amount,this))
 #endif
@@ -40,11 +42,6 @@ std::shared_ptr<const Address> AddressBox::getAddress(void)const
 QString AddressBox::getAddressHash(void)const
 {
     return m_addr->addrhash().toHexString();
-}
-QString AddressBox::getAddressBech32()const
-{
-    const auto addr=qencoding::qbech32::Iota::encode(m_hrp,m_addr->addr());
-    return addr;
 }
 void AddressBox::monitorToExpire(const c_array outId,const quint32 unixTime)
 {

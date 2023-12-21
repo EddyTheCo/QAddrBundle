@@ -55,6 +55,7 @@ class QADDR_EXPORT AddressBox:public QObject
     Q_OBJECT
 #if defined(USE_QML)
     Q_PROPERTY(Qml64*  amount READ amountJson CONSTANT)
+    Q_PROPERTY(QString bech32Address READ getAddressBech32 CONSTANT)
     QML_ELEMENT
     QML_UNCREATABLE("")
 #endif
@@ -65,7 +66,7 @@ public:
     AddressBox(const std::shared_ptr<const Address>& addr,c_array outId=c_array(),const QString hrp="rms");
 
     std::shared_ptr<const Address> getAddress(void)const;
-    Q_INVOKABLE QString getAddressBech32()const;
+    QString getAddressBech32()const{return m_bech32adddress;}
     QString getAddressHash(void)const;
 
     void getOutputs(std::vector<Node_output> &outs, const quint64 amountNeedIt=0, const quint16 howMany=0);
@@ -106,7 +107,7 @@ private:
     const std::pair<QByteArray,QByteArray> m_keyPair;
     std::shared_ptr<const Address> m_addr;
     c_array m_outId;
-    QString m_hrp;
+    QString m_bech32adddress,m_hrp;
 
 };
 };
