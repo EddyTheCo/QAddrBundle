@@ -262,6 +262,7 @@ void AddressBox::getOutputs(std::vector<Node_output> &outs_, const quint64 amoun
         outs_.pop_back();
     }
 }
+#if defined(USE_QML)
 Qml64::Qml64(const quint64 value,QObject *parent):QObject(parent),m_value(value)
 {
     connect(NodeConnection::instance(),&NodeConnection::stateChanged,this,&Qml64::intToJSON);
@@ -306,5 +307,6 @@ void Qml64::intToJSON()
         });
     }
 }
+#endif
 
 }
