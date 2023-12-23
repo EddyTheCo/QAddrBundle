@@ -61,13 +61,13 @@ class QADDR_EXPORT AddressBox:public QObject
 #endif
 
 public:
-    AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,const QString hrp="rms");
+    AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,const QString hrp="rms",QObject *parent = nullptr);
 
-    AddressBox(const std::shared_ptr<const Address>& addr,c_array outId=c_array(),const QString hrp="rms");
+    AddressBox(const std::shared_ptr<const Address>& addr,c_array outId=c_array(),const QString hrp="rms",QObject *parent = nullptr);
 
     std::shared_ptr<const Address> getAddress(void)const;
-    QString getAddressBech32()const{return m_bech32adddress;}
     QString getAddressHash(void)const;
+    QString getAddressBech32()const{ return m_bech32adddress; }
 
     void getOutputs(std::vector<Node_output> &outs, const quint64 amountNeedIt=0, const quint16 howMany=0);
     pvector<const Unlock> getUnlocks(const QByteArray & message, const quint16 &ref, const size_t &inputSize);
@@ -105,9 +105,9 @@ private:
     Qml64* m_amountJson;
 #endif
     const std::pair<QByteArray,QByteArray> m_keyPair;
-    std::shared_ptr<const Address> m_addr;
-    c_array m_outId;
-    QString m_bech32adddress,m_hrp;
+    const std::shared_ptr<const Address> m_addr;
+    const c_array m_outId;
+    const QString m_bech32adddress,m_hrp;
 
 };
 };
