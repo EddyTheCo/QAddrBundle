@@ -70,7 +70,8 @@ public:
     QString getAddressHash(void)const;
 
     void getOutputs(std::vector<Node_output> &outs, const quint64 amountNeedIt=0, const quint16 howMany=0);
-    pvector<const Unlock> getUnlocks(const QByteArray & message, const quint16 &ref, const size_t &inputSize);
+    pvector<const Unlock> getUnlocks
+        (const QByteArray & message, const quint16 &ref, const size_t &inputSize)const;
     quint64 amount(void)const{return m_amount;};
 #if defined(USE_QML)
     Qml64* amountJson()const{return m_amountJson;}

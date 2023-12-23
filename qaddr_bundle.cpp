@@ -143,7 +143,7 @@ void  AddressBox::clean(std::vector<c_array> & rm_inputs,std::vector<c_array> & 
     }
     delete this;
 }
-pvector<const Unlock> AddressBox::getUnlocks(const QByteArray & message, const quint16 &ref, const size_t& inputSize)
+pvector<const Unlock> AddressBox::getUnlocks(const QByteArray & message, const quint16 &ref, const size_t& inputSize) const
 {
     pvector<const Unlock> unlocks;
     for(size_t i=0;i<inputSize;i++)
