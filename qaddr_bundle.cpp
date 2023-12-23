@@ -9,7 +9,7 @@ namespace qiota{
 using namespace qblocks;
 
 AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,
-                       const QString hrp):m_keyPair(keyPair),
+                       const QString hrp, QObject *parent):QObject(parent),m_keyPair(keyPair),
     m_addr(std::shared_ptr<Address>(new Ed25519_Address(
         QCryptographicHash::hash(keyPair.first,QCryptographicHash::Blake2b_256)))),
     m_amount(0),m_bech32adddress(qencoding::qbech32::Iota::encode(hrp,m_addr->addr())),m_hrp(hrp)
@@ -23,7 +23,7 @@ AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,
 #endif
 
 };
-AddressBox::AddressBox(const std::shared_ptr<const Address>& addr, c_array outId,const QString hrp):
+AddressBox::AddressBox(const std::shared_ptr<const Address>& addr, c_array outId,const QString hrp,QObject *parent):QObject(parent),
     m_addr(addr),m_amount(0),m_outId(outId),m_bech32adddress(qencoding::qbech32::Iota::encode(hrp,m_addr->addr()))
 ,m_hrp(hrp)
 #if defined(USE_QML)
@@ -90,11 +90,11 @@ void AddressBox::addInput(const c_array outId, const InBox & inBox)
         AddressBox* nextAddr=nullptr;
         if(inBox.output->type()==Output::NFT_typ)
         {
-            nextAddr=new AddressBox(Address::NFT(inBox.output->get_id()),outId,m_hrp);
+            nextAddr=new AddressBox(Address::NFT(inBox.output->get_id()),outId,m_hrp,this);
         }
         if(inBox.output->type()==Output::Alias_typ)
         {
-            nextAddr=new AddressBox(Address::Alias(inBox.output->get_id()),outId,m_hrp);
+            nextAddr=new AddressBox(Address::Alias(inBox.output->get_id()),outId,m_hrp,this);
         }
         addAddrBox(outId,nextAddr);
     }
@@ -143,7 +143,7 @@ void  AddressBox::clean(std::vector<c_array> & rm_inputs,std::vector<c_array> & 
     }
     delete this;
 }
-pvector<const Unlock> AddressBox::getUnlocks(const QByteArray & message, const quint16 &ref, const size_t& inputSize)
+pvector<const Unlock> AddressBox::getUnlocks(const QByteArray & message, const quint16 &ref, const size_t& inputSize) const
 {
     pvector<const Unlock> unlocks;
     for(size_t i=0;i<inputSize;i++)
