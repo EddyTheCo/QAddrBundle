@@ -7,7 +7,7 @@
 namespace qiota{
 
 using namespace qblocks;
-
+#if defined(USE_QML)
 AddressChecker::AddressChecker(QObject *parent):QObject(parent),m_valid(false)
 {
     connect(this, &AddressChecker::addressChanged,this,[=](){
@@ -22,7 +22,7 @@ AddressChecker::AddressChecker(QObject *parent):QObject(parent),m_valid(false)
         }
     });
 };
-
+#endif
 AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,
                        const QString hrp, QObject *parent):QObject(parent),m_keyPair(keyPair),
     m_addr(std::shared_ptr<Address>(new Ed25519_Address(
