@@ -42,6 +42,25 @@ signals:
 private:
     void intToJSON();
 };
+
+class QADDR_EXPORT AddressChecker:public QObject
+{
+    bool  m_valid;
+    QString m_address;
+    void setValid(bool valid){if(valid!=m_valid){m_valid=valid; emit validChanged();}}
+    Q_OBJECT
+
+    Q_PROPERTY(bool valid READ isValid  NOTIFY validChanged)
+    Q_PROPERTY(QString address MEMBER m_address   NOTIFY addressChanged)
+    QML_ELEMENT
+
+public:
+    AddressChecker(QObject *parent = nullptr);
+    bool isValid(void)const{return m_valid;};
+signals:
+    void validChanged();
+    void addressChanged();
+};
 #endif
 struct InBox {
     std::shared_ptr<const Input> input=nullptr;
