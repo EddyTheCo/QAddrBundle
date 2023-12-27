@@ -49,7 +49,7 @@ endif(USE_QML)
 
 if (Qt6_FOUND)
     qt_standard_project_setup()
-endif(Qt6_FOUND)
+
 
 add_library(addrBundle qaddr_bundle.cpp include/qaddr_bundle.hpp)
 add_library(${PROJECT_NAME}::addrBundle ALIAS addrBundle)
@@ -156,6 +156,8 @@ endif()
 #if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
 #    add_subdirectory(tests)
 #endif()
+endif(Qt6_FOUND)
+
 if(BUILD_DOCS)
     get_target_property(build_docs cmake_build_docs SOURCES)
     include(${build_docs})
