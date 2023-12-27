@@ -67,12 +67,25 @@ void AddressBox::monitorToExpire(const c_array outId,const quint32 unixTime)
         rmInput(outId,rm_inputs,rm_address);
     });
 }
+void AddressBox::monitorFromExpire(const c_array outId,const quint32 unixTime)
+{
+    const auto triger=(unixTime-QDateTime::currentDateTime().toSecsSinceEpoch())*1000;
+    QTimer::singleShot(triger,this,[=](){
+
+        auto resp=NodeConnection::instance()->rest()->get_api_core_v2_outputs_outputId(outId.toHexString());
+        connect(resp,&Response::returned,this,[=](QJsonValue data){
+            auto node_outputs=std::vector<Node_output>{Node_output(data)};
+            getOutputs({node_outputs});
+            resp->deleteLater();
+        });
+    });
+}
 void AddressBox::monitorToUnlock(const c_array outId, const quint32 unixTime)
 {
     const auto triger=(unixTime-QDateTime::currentDateTime().toSecsSinceEpoch())*1000;
     QTimer::singleShot(triger,this,[=](){
-        auto resp=NodeConnection::instance()->mqtt()->get_outputs_outputId(outId.toHexString());
-        connect(resp,&ResponseMqtt::returned,this,[=](QJsonValue data){
+        auto resp=NodeConnection::instance()->rest()->get_api_core_v2_outputs_outputId(outId.toHexString());
+        connect(resp,&Response::returned,this,[=](QJsonValue data){
             auto node_outputs=std::vector<Node_output>{Node_output(data)};
             getOutputs({node_outputs});
             resp->deleteLater();
@@ -187,11 +200,11 @@ pvector<const Unlock> AddressBox::getUnlocks(const QByteArray & message, const q
 }
 void AddressBox::getOutputs(std::vector<Node_output> &outs_, const quint64 amount_need_it, quint16 howMany)
 {
+
     const auto size=outs_.size();
     while(((amount_need_it)?m_amount<amount_need_it:true)&&((howMany>=size)||(!howMany)?!outs_.empty():outs_.size()+howMany>size))
     {
         const auto v=outs_.back();
-
         if(!v.metadata().is_spent_&&!(m_inputs.contains(v.metadata().outputid_)))
         {
             const auto output_=v.output();
@@ -233,10 +246,10 @@ void AddressBox::getOutputs(std::vector<Node_output> &outs_, const quint64 amoun
                 {
                     retOut=nullptr;
                     retAmount=0;
-
                     if(cday<=unix_time)
                     {
                         outs_.pop_back();
+                        monitorFromExpire(v.metadata().outputid_,unix_time);
                         continue;
                     }
                 }

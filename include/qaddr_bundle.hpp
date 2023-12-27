@@ -110,6 +110,7 @@ private:
     void clean(std::vector<c_array> &rm_inputs, std::vector<c_array> &rm_addresses);
     void monitorToSpend(const c_array outId);
     void monitorToExpire(const c_array outId, const quint32 unixTime);
+    void monitorFromExpire(const c_array outId, const quint32 unixTime);
     void monitorToUnlock(const c_array outId,const quint32 unixTime);
     void rmInput(const c_array outId,std::vector<c_array> & rm_inputs,std::vector<c_array> & rm_addresses);
     void addInput(const c_array outId, const InBox &inBox);
