@@ -87,7 +87,7 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/Esterv/Iota/AddrBundle
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/Esterv/Iota
     COMPONENT addrBundle
 )
-install(TARGETS accountplugin
+install(TARGETS addrBundleplugin
     EXPORT ${PROJECT_NAME}-config
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/Esterv/Iota/AddrBundle
     COMPONENT addrBundle
