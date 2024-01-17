@@ -242,26 +242,29 @@ void AddressBox::getOutputs(std::vector<Node_output> &outs_, const quint64 amoun
                 const auto ret_address=expiration_cond->address();
 
                 const auto  addr_unlock=std::static_pointer_cast<const Address_Unlock_Condition>(output_->get_unlock_(Unlock_Condition::Address_typ));
-                if(ret_address->addr()==getAddress()->addr()&&addr_unlock->address()->addr()!=getAddress()->addr())
+                if(ret_address->addr()!=addr_unlock->address()->addr())
                 {
-                    retOut=nullptr;
-                    retAmount=0;
-                    if(cday<=unix_time)
-                    {
-                        outs_.pop_back();
-                        monitorFromExpire(v.metadata().outputid_,unix_time);
-                        continue;
-                    }
-                }
-                else
-                {
-                    if(cday>unix_time)
+                    if(ret_address->addr()==getAddress()->addr()&&addr_unlock->address()->addr()!=getAddress()->addr())
                     {
                         retOut=nullptr;
-                        outs_.pop_back();
-                        continue;
+                        retAmount=0;
+                        if(cday<=unix_time)
+                        {
+                            outs_.pop_back();
+                            monitorFromExpire(v.metadata().outputid_,unix_time);
+                            continue;
+                        }
                     }
-                    monitorToExpire(v.metadata().outputid_,unix_time);
+                    else
+                    {
+                        if(cday>unix_time)
+                        {
+                            retOut=nullptr;
+                            outs_.pop_back();
+                            continue;
+                        }
+                        monitorToExpire(v.metadata().outputid_,unix_time);
+                    }
                 }
             }
             InBox inBox;
