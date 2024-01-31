@@ -34,9 +34,9 @@ class QADDR_EXPORT Qml64:public QObject
 
 public:
     Qml64(const quint64 value=0,QObject *parent = nullptr);
-    QJsonObject json(void)const{return m_json;};
+    QJsonObject json(void)const;
     void setValue(const quint64 value);
-    const auto& getValue()const{return m_value;};
+    quint64 getValue()const;
 signals:
     void jsonChanged();
 private:
@@ -47,7 +47,7 @@ class QADDR_EXPORT AddressChecker:public QObject
 {
     bool  m_valid;
     QString m_address;
-    void setValid(bool valid){if(valid!=m_valid){m_valid=valid; emit validChanged();}}
+    void setValid(bool valid);
     Q_OBJECT
 
     Q_PROPERTY(bool valid READ isValid  NOTIFY validChanged)
@@ -56,7 +56,7 @@ class QADDR_EXPORT AddressChecker:public QObject
 
 public:
     AddressChecker(QObject *parent = nullptr);
-    bool isValid(void)const{return m_valid;};
+    bool isValid(void)const;
 signals:
     void validChanged();
     void addressChanged();
@@ -86,17 +86,17 @@ public:
 
     std::shared_ptr<const Address> getAddress(void)const;
     QString getAddressHash(void)const;
-    QString getAddressBech32()const{ return m_bech32adddress; }
+    QString getAddressBech32()const;
 
     void getOutputs(std::vector<Node_output> &outs, const quint64 amountNeedIt=0, const quint16 howMany=0);
     pvector<const Unlock> getUnlocks
         (const QByteArray & message, const quint16 &ref, const size_t &inputSize)const;
-    quint64 amount(void)const{return m_amount;};
+    quint64 amount(void)const;
 #if defined(USE_QML)
-    Qml64* amountJson()const{return m_amountJson;}
+    Qml64* amountJson()const;
 #endif
-    const auto& inputs(void)const{return m_inputs;};
-    c_array outId()const{return m_outId;}
+    const QHash<c_array,InBox>& inputs(void)const;
+    c_array outId()const;
 
 signals:
     void amountChanged(quint64 prevA,quint64 nextA);
@@ -116,8 +116,7 @@ private:
     void addInput(const c_array outId, const InBox &inBox);
     void addAddrBox(const c_array outId, AddressBox* addrBox);
 
-    void setAmount(const quint64 amount){
-        if(amount!=m_amount){const auto oldAmount=m_amount;m_amount=amount;emit amountChanged(oldAmount,amount);}}
+    void setAmount(const quint64 amount);
 
     QHash<c_array,InBox> m_inputs;
     QHash<c_array,AddressBox *> m_AddrBoxes;
@@ -128,7 +127,7 @@ private:
     const std::pair<QByteArray,QByteArray> m_keyPair;
     const std::shared_ptr<const Address> m_addr;
     const c_array m_outId;
-    const QString m_bech32adddress,m_hrp;
+    const QString m_bech32address,m_hrp;
 
 };
 };

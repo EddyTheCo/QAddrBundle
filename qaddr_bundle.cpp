@@ -7,7 +7,19 @@
 namespace qiota{
 
 using namespace qblocks;
+
+quint64 AddressBox::amount(void)const{return m_amount;};
+const QHash<c_array,InBox>& AddressBox::inputs(void)const{return m_inputs;};
+c_array AddressBox::outId()const{return m_outId;}
+void AddressBox::setAmount(const quint64 amount){
+    if(amount!=m_amount){const auto oldAmount=m_amount;m_amount=amount;emit amountChanged(oldAmount,amount);}}
+
 #if defined(USE_QML)
+Qml64* AddressBox::amountJson()const{return m_amountJson;}
+QJsonObject Qml64::json(void)const{return m_json;};
+quint64 Qml64::getValue()const{return m_value;};
+void AddressChecker::setValid(bool valid){if(valid!=m_valid){m_valid=valid; emit validChanged();}}
+bool AddressChecker::isValid(void)const{return m_valid;};
 AddressChecker::AddressChecker(QObject *parent):QObject(parent),m_valid(false)
 {
     connect(this, &AddressChecker::addressChanged,this,[=](){
@@ -23,11 +35,12 @@ AddressChecker::AddressChecker(QObject *parent):QObject(parent),m_valid(false)
     });
 };
 #endif
+QString AddressBox::getAddressBech32()const{return m_bech32address; }
 AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,
                        const QString hrp, QObject *parent):QObject(parent),m_keyPair(keyPair),
     m_addr(std::shared_ptr<Address>(new Ed25519_Address(
         QCryptographicHash::hash(keyPair.first,QCryptographicHash::Blake2b_256)))),
-    m_amount(0),m_bech32adddress(qencoding::qbech32::Iota::encode(hrp,m_addr->addr())),m_hrp(hrp)
+    m_amount(0),m_bech32address(qencoding::qbech32::Iota::encode(hrp,m_addr->addr())),m_hrp(hrp)
 #if defined(USE_QML)
     ,m_amountJson(new Qml64(m_amount,this))
 #endif
@@ -39,7 +52,7 @@ AddressBox::AddressBox(const std::pair<QByteArray,QByteArray>& keyPair,
 
 };
 AddressBox::AddressBox(const std::shared_ptr<const Address>& addr, c_array outId,const QString hrp,QObject *parent):QObject(parent),
-    m_addr(addr),m_amount(0),m_outId(outId),m_bech32adddress(qencoding::qbech32::Iota::encode(hrp,m_addr->addr()))
+    m_addr(addr),m_amount(0),m_outId(outId),m_bech32address(qencoding::qbech32::Iota::encode(hrp,m_addr->addr()))
 ,m_hrp(hrp)
 #if defined(USE_QML)
     ,m_amountJson(new Qml64(m_amount,this))
@@ -269,6 +282,8 @@ void AddressBox::getOutputs(std::vector<Node_output> &outs_, const quint64 amoun
             }
             InBox inBox;
             inBox.input=Input::UTXO(v.metadata().transaction_id_,v.metadata().output_index_);
+            inBox.retOutput=retOut;
+
 
             qblocks::c_array prevOutputSer;
             prevOutputSer.from_object<Output>(*v.output());
