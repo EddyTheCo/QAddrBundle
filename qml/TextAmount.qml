@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 import Esterv.Iota.AddrBundle
 import Esterv.Styles.Simple
 Text
