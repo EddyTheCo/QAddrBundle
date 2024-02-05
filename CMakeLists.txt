@@ -25,6 +25,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 include(GNUInstallDirs)
 
+find_package(OpenSSL)
+
 FetchContent_Declare(
     IotaNodeConn
     GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
