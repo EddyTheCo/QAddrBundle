@@ -36,8 +36,8 @@ FetchContent_MakeAvailable(IotaNodeConn)
 FetchContent_Declare(
     IotaAccount
     GIT_REPOSITORY https://github.com/EddyTheCo/account.git
-    GIT_TAG v0.5.0
-    FIND_PACKAGE_ARGS 0.5 CONFIG
+    GIT_TAG v0.6.0
+    FIND_PACKAGE_ARGS 0.6 CONFIG
 )
 FetchContent_MakeAvailable(IotaAccount)
 
