@@ -13,7 +13,7 @@ jobs:
       matrix:
         os: [ubuntu-latest,macos-latest,windows-latest]
 
-    uses: EddyTheCo/Common/.github/workflows/build-test-install.yml@develop
+    uses: EddyTheCo/Common/.github/workflows/build-test-install.yml@v0.1.2
     permissions:
       contents: write
     with:
@@ -32,9 +32,9 @@ jobs:
 
     steps:
           
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
     
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
            path: artifacts
       - name: Display structure of downloaded files

@@ -25,7 +25,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 include(GNUInstallDirs)
 
-find_package(OpenSSL)
+find_package(OpenSSL) #Without this qvault cant find openssl in windows and Macos :)
 
 FetchContent_Declare(
     IotaNodeConn
