@@ -25,6 +25,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 include(GNUInstallDirs)
 
+find_package(OpenSSL) #Without this qvault cant find openssl in windows and Macos :)
+
 FetchContent_Declare(
     IotaNodeConn
     GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
@@ -36,8 +38,8 @@ FetchContent_MakeAvailable(IotaNodeConn)
 FetchContent_Declare(
     IotaAccount
     GIT_REPOSITORY https://github.com/EddyTheCo/account.git
-    GIT_TAG v0.5.0
-    FIND_PACKAGE_ARGS 0.5 CONFIG
+    GIT_TAG v0.6.0
+    FIND_PACKAGE_ARGS 0.6 CONFIG
 )
 FetchContent_MakeAvailable(IotaAccount)
 
