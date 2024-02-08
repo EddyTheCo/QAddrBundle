@@ -30,7 +30,7 @@ find_package(OpenSSL) #Without this qvault cant find openssl in windows and Maco
 FetchContent_Declare(
     IotaNodeConn
     GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
-    GIT_TAG v0.5.0
+    GIT_TAG v0.5.1
     FIND_PACKAGE_ARGS 0.5 CONFIG
 )
 FetchContent_MakeAvailable(IotaNodeConn)
@@ -38,7 +38,7 @@ FetchContent_MakeAvailable(IotaNodeConn)
 FetchContent_Declare(
     IotaAccount
     GIT_REPOSITORY https://github.com/EddyTheCo/account.git
-    GIT_TAG v0.6.0
+    GIT_TAG v0.6.1
     FIND_PACKAGE_ARGS 0.6 CONFIG
 )
 FetchContent_MakeAvailable(IotaAccount)
