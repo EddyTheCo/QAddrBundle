@@ -1,5 +1,7 @@
 # Esterv.Iota.AddressWallet 
 
+[TOC]
+
 This repo implements methods for controlling Iota assets, outputs associated to certain address.
 In principle should be like a wallet that keeps track the assets controlled by that address.
 
@@ -30,8 +32,8 @@ include(FetchContent)
 FetchContent_Declare(
 	IotaAddressWallet	
 	GIT_REPOSITORY https://github.com/EddyTheCo/QAddrBundle.git
-	GIT_TAG main 
-	FIND_PACKAGE_ARGS 0.1 CONFIG  
+	GIT_TAG vMAJOR.MINOR.PATCH 
+	FIND_PACKAGE_ARGS MAJOR.MINOR CONFIG  
 	)
 FetchContent_MakeAvailable(IotaAddressWallet)
 
