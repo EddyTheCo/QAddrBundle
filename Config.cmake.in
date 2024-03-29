@@ -1,6 +1,6 @@
 @PACKAGE_INIT@
 include(CMakeFindDependencyMacro)
 find_dependency(Qt6 REQUIRED COMPONENTS Gui Quick )
-find_dependency(IotaNodeConn 0.5 REQUIRED  CONFIG)
-find_dependency(IotaAccount 0.6 REQUIRED  CONFIG)
+find_dependency(IotaNodeConn 0.6 REQUIRED  CONFIG)
+find_dependency(IotaAccount 0.7 REQUIRED  CONFIG)
 include ( "${CMAKE_CURRENT_LIST_DIR}/IotaAddressWallet-config.cmake" )
