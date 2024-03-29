@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.24)
 
-option(USE_QML "Create QML types and modules" OFF)
+option(USE_QML "Create QML types and modules" ON)
 include(${CMAKE_CURRENT_BINARY_DIR}/local_conf.cmake OPTIONAL)
 
 include(FetchContent)
 FetchContent_Declare(
 	ccommon
 	GIT_REPOSITORY https://github.com/EddyTheCo/Common.git
-	GIT_TAG use_IFW
+	GIT_TAG v0.3.0
 	)
 FetchContent_MakeAvailable(ccommon)
 
@@ -31,16 +31,16 @@ find_package(OpenSSL) #Without this qvault cant find openssl in windows and Maco
 FetchContent_Declare(
 	IotaNodeConn
 	GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
-	GIT_TAG use_IFW
-	FIND_PACKAGE_ARGS 0.5 CONFIG
+	GIT_TAG v0.6.0
+	FIND_PACKAGE_ARGS 0.6 CONFIG
 	)
 FetchContent_MakeAvailable(IotaNodeConn)
 
 FetchContent_Declare(
 	IotaAccount
 	GIT_REPOSITORY https://github.com/EddyTheCo/account.git
-	GIT_TAG use_IFW
-	FIND_PACKAGE_ARGS 0.6 CONFIG
+	GIT_TAG v0.7.0
+	FIND_PACKAGE_ARGS 0.7 CONFIG
 	)
 FetchContent_MakeAvailable(IotaAccount)
 
@@ -52,7 +52,6 @@ endif(USE_QML)
 
 if (Qt6_FOUND)
 	qt_standard_project_setup()
-
 
 	add_library(addrBundle qaddr_bundle.cpp include/qaddr_bundle.hpp)
 	add_library(${PROJECT_NAME}::addrBundle ALIAS addrBundle)
